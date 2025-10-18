@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SpeakUp — AI English Coach</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="app-container">
+      <header>
+        <h1>SpeakUp — AI English Coach</h1>
+        <p>
+          Practice real English conversations, get personalized feedback, and
+          earn a certificate!
+        </p>
+      </header>
+
+      <main id="main-area">
+        <!-- Conversation Panel -->
+        <section id="conversation" class="panel active">
+          <div class="chat-box" id="chatBox"></div>
+          <div class="controls">
+            <input id="userInput" type="text" placeholder="Say something..." />
+            <button id="sendBtn">Send</button>
+            <button id="speakBtn">🎤</button>
+          </div>
+        </section>
+        <!-- Inside the controls row, right under #voiceSelect -->
+        <select
+          id="voiceSelect"
+          title="Instructor (Voice)"
+          style="min-width: 260px"
+        ></select>
+        <div id="voicePersona" class="mini" style="opacity: 0.8"></div>
+        <!-- Survey Panel -->
+        <section id="survey" class="panel">
+          <h2>📝 Personalize Your Course</h2>
+          <p>Answer a few quick questions to tailor your speaking course.</p>
+          <form id="surveyForm">
+            <label>What's your name?</label>
+            <input type="text" id="nameInput" required />
+
+            <label>What is your English level?</label>
+            <select id="levelSelect">
+              <option value="A2">A2 — Elementary</option>
+              <option value="B1" selected>B1 — Intermediate</option>
+              <option value="B2">B2 — Upper Intermediate</option>
+              <option value="C1">C1 — Advanced</option>
+            </select>
+
+            <label>What topics do you want to focus on?</label>
+            <textarea
+              id="topicsInput"
+              placeholder="e.g. job interviews, travel, small talk"
+            ></textarea>
+
+            <label>How many hours per week can you practice?</label>
+            <input type="number" id="hoursInput" min="1" max="40" />
+
+            <button type="submit">Generate Plan</button>
+          </form>
+
+          <div id="coursePlan" class="plan-output"></div>
+        </section>
+
+        <!-- Certificate Panel -->
+        <section id="certificate" class="panel">
+          <h2>🏆 Certificate of Completion</h2>
+          <p>
+            Once you finish your course, you’ll get a personalized certificate.
+          </p>
+          <input type="text" id="certName" placeholder="Enter your name" />
+          <input
+            type="text"
+            id="certLevel"
+            placeholder="Enter your level (A2–C1)"
+          />
+          <button id="generateCertBtn">Generate Certificate</button>
+          <div id="certOutput"></div>
+        </section>
+      </main>
+
+      <nav>
+        <button class="nav-btn active" data-target="conversation">
+          💬 Conversation
+        </button>
+        <button class="nav-btn" data-target="survey">🧭 Survey</button>
+        <button class="nav-btn" data-target="certificate">
+          📜 Certificate
+        </button>
+      </nav>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
