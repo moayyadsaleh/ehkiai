@@ -5,94 +5,1989 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SpeakUp — AI English Coach</title>
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ==== Access Gate + Admin Gate minimal styling (doesn't touch your theme) ==== */
+      :root {
+        --gate-bg: rgba(10, 12, 16, 0.85);
+        --gate-panel: #14181f;
+        --gate-text: #eaf1ff;
+        --gate-muted: #9fb0c9;
+        --gate-accent: #3aa6ff;
+        --gate-danger: #ff5577;
+        --gate-ok: #2ecc71;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      /* Start with the app hidden until access is granted */
+      .app-container {
+        display: none;
+      }
+
+      #accessGate,
+      #adminGate {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(
+            1200px 800px at 20% -20%,
+            rgba(27, 42, 66, 0.45),
+            rgba(9, 11, 16, 0.85)
+          ),
+          var(--gate-bg);
+        backdrop-filter: blur(8px);
+      }
+      #gateCard,
+      #adminCard {
+        width: min(560px, 92vw);
+        background: linear-gradient(180deg, #171c24, #11151c);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+        color: var(--gate-text);
+        padding: 20px;
+      }
+      #gateHeader,
+      #adminHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      #gateTitle,
+      #adminTitle {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.3px;
+      }
+      #gateSub,
+      #adminSub {
+        margin: 4px 0 0;
+        color: var(--gate-muted);
+        font-size: 13px;
+      }
+      #gateBody,
+      #adminBody {
+        display: grid;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .gate-input,
+      .admin-input {
+        width: 100%;
+        background: #0f1319;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 12px 12px;
+        color: var(--gate-text);
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        outline: none;
+      }
+      .gate-input::placeholder,
+      .admin-input::placeholder {
+        color: #6f7f97;
+      }
+      .gate-actions,
+      .admin-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        align-items: center;
+      }
+      .gate-btn {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: #0f141b;
+        color: var(--gate-text);
+        border-radius: 10px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .gate-btn.primary {
+        background: linear-gradient(180deg, #2d9cff, #1283e6);
+        border-color: #2788ff;
+        color: white;
+      }
+      .gate-btn.ghost {
+        background: transparent;
+      }
+      .gate-note {
+        color: var(--gate-muted);
+        font-size: 12px;
+      }
+      #gateMsg,
+      #adminMsg {
+        font-size: 13px;
+        min-height: 18px;
+      }
+      #gateMsg.ok,
+      #adminMsg.ok {
+        color: var(--gate-ok);
+      }
+      #gateMsg.err,
+      #adminMsg.err {
+        color: var(--gate-danger);
+      }
+
+      /* Manage access (top-right) - only after ADMIN auth */
+      #accessMenuBtn {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 10000;
+        display: none; /* becomes visible after ADMIN unlock */
+        background: rgba(15, 20, 27, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--gate-text);
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      #accessMenu {
+        position: fixed;
+        top: 46px;
+        right: 10px;
+        z-index: 10000;
+        background: #0f141b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 10px;
+        width: 280px;
+        display: none;
+      }
+      #accessMenu p {
+        margin: 6px 0;
+        color: var(--gate-muted);
+        font-size: 12px;
+      }
+      #accessMenu .small {
+        font-size: 11px;
+        opacity: 0.8;
+      }
+      #accessMenu .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      #accessMenu .row .gate-btn {
+        flex: 1;
+        padding: 8px 10px;
+      }
+      #accessMenu .label {
+        font-size: 12px;
+        color: var(--gate-text);
+        opacity: 0.9;
+        margin-top: 4px;
+      }
+      #accessMenu code {
+        font-size: 11px;
+        background: #0b0f14;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      /* Subtle admin link on access gate */
+      #adminOpenLink {
+        display: inline-block;
+        margin-top: 6px;
+        color: var(--gate-accent);
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 12px;
+      }
+    </style>
   </head>
 
   <body>
+    <!-- ===== Access Gate Overlay ===== -->
+    <div
+      id="accessGate"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gateTitle"
+    >
+      <div id="gateCard" class="card">
+        <div id="gateHeader">
+          <div>
+            <h3 id="gateTitle">🔒 Enter Access Code</h3>
+            <p id="gateSub">
+              This code is device-bound. After you unlock once, this device
+              won’t be asked again.
+            </p>
+            <span id="adminOpenLink" class="gate-note"
+              >Admin sign-in (or press Ctrl+Alt+A)</span
+            >
+          </div>
+        </div>
+
+        <div id="gateBody">
+          <input
+            id="accessCodeInput"
+            class="gate-input"
+            type="text"
+            placeholder="e.g., EHKI-ABCD-1234"
+            autocomplete="one-time-code"
+            spellcheck="false"
+            aria-label="Access code"
+          />
+          <div class="gate-actions">
+            <span id="gateMsg" aria-live="polite"></span>
+            <button id="pasteBtn" class="gate-btn ghost" type="button">
+              Paste
+            </button>
+            <button id="unlockBtn" class="gate-btn primary" type="button">
+              Unlock
+            </button>
+          </div>
+          <div class="gate-note">
+            Tip: You can share codes manually. To revoke this device later, an
+            admin must sign in and reset this device.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Admin Gate (password-protected admin only) ===== -->
+    <div
+      id="adminGate"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="adminTitle"
+      class="hidden"
+    >
+      <div id="adminCard" class="card">
+        <div id="adminHeader">
+          <div>
+            <h3 id="adminTitle">👮 Admin Sign-in</h3>
+            <p id="adminSub" class="gate-note">
+              Enter the admin password to manage access on this device.
+            </p>
+          </div>
+        </div>
+        <div id="adminBody">
+          <input
+            id="adminPassInput"
+            class="admin-input"
+            type="password"
+            placeholder="Admin password"
+            autocomplete="current-password"
+            aria-label="Admin password"
+          />
+          <div class="admin-actions">
+            <span id="adminMsg" aria-live="polite"></span>
+            <button id="adminCancelBtn" class="gate-btn ghost" type="button">
+              Cancel
+            </button>
+            <button id="adminLoginBtn" class="gate-btn primary" type="button">
+              Sign in
+            </button>
+          </div>
+          <div class="gate-note">
+            Hint: change the password by updating <code>ADMIN_PASS_SHA256</code>
+            in the HTML file.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage access (ADMIN only, appears after admin sign-in) -->
+    <button id="accessMenuBtn" type="button">⋯ Manage access</button>
+    <div id="accessMenu" class="card">
+      <p class="label">License on this device</p>
+      <p id="licenseInfo" class="small">—</p>
+      <div class="row">
+        <button id="resetLicenseBtn" class="gate-btn" type="button">
+          Reset license
+        </button>
+        <button id="copyDeviceIdBtn" class="gate-btn" type="button">
+          Copy Device ID
+        </button>
+      </div>
+      <div class="row" style="margin-top: 8px">
+        <button id="adminSignoutBtn" class="gate-btn ghost" type="button">
+          Sign out admin
+        </button>
+        <button id="closeMenuBtn" class="gate-btn" type="button">Close</button>
+      </div>
+      <p class="small" id="adminStatusMsg" style="margin-top: 6px">—</p>
+    </div>
+
+    <!-- ===== Your App ===== -->
     <div class="app-container">
+      <!-- ===== Header ===== -->
       <header>
-        <h1>SpeakUp — AI English Coach</h1>
-        <p>
-          Practice real English conversations, get personalized feedback, and
-          earn a certificate!
-        </p>
+        <div>
+          <h1>Ehki AI — AI English Coach</h1>
+          <p class="text-muted" style="margin: 6px 0 0">
+            Practice real conversations, get smart feedback, and earn a
+            certificate.
+          </p>
+        </div>
+        <!-- 3D Talking Head -->
+        <div
+          class="card"
+          id="aiHeadWrap"
+          style="
+            padding: 0;
+            display: grid;
+            place-items: center;
+            margin-bottom: 10px;
+          "
+        >
+          <canvas
+            id="aiHeadCanvas"
+            style="
+              width: 100%;
+              height: 220px;
+              display: block;
+              border-radius: 12px;
+            "
+          ></canvas>
+        </div>
+
+        <!-- Tools: voice select + preview -->
+        <div class="header-tools">
+          <div
+            class="voice-preview"
+            id="voicePreviewWrap"
+            title="Preview selected voice"
+          >
+            <select
+              id="voiceSelect"
+              class="voice-select"
+              aria-label="Instructor (Voice)"
+              title="Instructor (Voice)"
+            ></select>
+          </div>
+          <div id="voicePersona" class="chip" style="opacity: 0.9">
+            Instructor:
+            <span
+              id="voicePersonaName"
+              style="margin-left: 6px; font-weight: 600"
+              >—</span
+            >
+          </div>
+        </div>
       </header>
 
+      <!-- ===== Main Area (Panels) ===== -->
       <main id="main-area">
-        <!-- Conversation Panel -->
+        <!-- ===== Conversation Panel (Two-pane layout) ===== -->
         <section id="conversation" class="panel active">
-          <div class="chat-box" id="chatBox"></div>
-          <div class="controls">
-            <input id="userInput" type="text" placeholder="Say something..." />
-            <button id="sendBtn">Send</button>
-            <button id="speakBtn">🎤</button>
+          <div class="layout">
+            <!-- Left: Chat -->
+            <section class="left">
+              <div
+                class="chat-box card"
+                id="chatBox"
+                aria-live="polite"
+                aria-label="Chat transcript"
+              ></div>
+
+              <!-- Input / mic controls -->
+              <div class="controls">
+                <input
+                  id="userInput"
+                  type="text"
+                  placeholder="Say something..."
+                  aria-label="Type a message"
+                />
+                <button id="sendBtn" aria-label="Send message">Send</button>
+                <button
+                  id="speakBtn"
+                  class="mic-btn btn-ghost"
+                  aria-label="Start/stop voice input"
+                >
+                  🎤
+                </button>
+              </div>
+            </section>
+
+            <!-- Right: Feedback stream -->
+            <aside class="right">
+              <div class="feedback-card card">
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 6px;
+                  "
+                >
+                  <strong>Feedback</strong>
+                  <span class="text-muted" style="font-size: 12px"
+                    >Per turn</span
+                  >
+                </div>
+                <div class="hr"></div>
+                <div
+                  class="feedback-scroll"
+                  id="feedbackList"
+                  aria-label="Feedback cards"
+                ></div>
+              </div>
+            </aside>
           </div>
         </section>
-        <!-- Inside the controls row, right under #voiceSelect -->
-        <select
-          id="voiceSelect"
-          title="Instructor (Voice)"
-          style="min-width: 260px"
-        ></select>
-        <div id="voicePersona" class="mini" style="opacity: 0.8"></div>
-        <!-- Survey Panel -->
+
         <section id="survey" class="panel">
-          <h2>📝 Personalize Your Course</h2>
-          <p>Answer a few quick questions to tailor your speaking course.</p>
-          <form id="surveyForm">
-            <label>What's your name?</label>
-            <input type="text" id="nameInput" required />
+          <div class="card" style="padding: 14px">
+            <h2 style="margin: 0 0 6px">🎯 Structured Learning Setup</h2>
+            <p class="text-muted" style="margin: 0 0 12px">
+              Tell us your name, pick any topics (or add your own), choose your
+              ACTFL level, then start.
+            </p>
 
-            <label>What is your English level?</label>
-            <select id="levelSelect">
-              <option value="A2">A2 — Elementary</option>
-              <option value="B1" selected>B1 — Intermediate</option>
-              <option value="B2">B2 — Upper Intermediate</option>
-              <option value="C1">C1 — Advanced</option>
-            </select>
+            <form id="surveyForm" class="grid" style="display: grid; gap: 12px">
+              <!-- Name -->
+              <label for="nameInput">What's your name?</label>
+              <input
+                type="text"
+                id="nameInput"
+                required
+                placeholder="Your name"
+              />
 
-            <label>What topics do you want to focus on?</label>
-            <textarea
-              id="topicsInput"
-              placeholder="e.g. job interviews, travel, small talk"
-            ></textarea>
+              <!-- Topics -->
+              <div>
+                <label>Choose topics (multiple allowed)</label>
 
-            <label>How many hours per week can you practice?</label>
-            <input type="number" id="hoursInput" min="1" max="40" />
+                <!-- Popular -->
+                <div class="topic-group">
+                  <div class="group-title">Popular</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Role plays (AI chooses role)"
+                      />
+                      Role plays (AI chooses role)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Small talk"
+                      />
+                      Small talk</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Everyday English"
+                      />
+                      Everyday English</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Travel"
+                      />
+                      Travel</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Fluency drills (keep talking)"
+                      />
+                      Fluency drills (keep talking)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Slang & informal English"
+                      />
+                      Slang & informal English</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Pronunciation & sounds"
+                      />
+                      Pronunciation & sounds</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Listening & comprehension"
+                      />
+                      Listening & comprehension</label
+                    >
+                  </div>
+                </div>
 
-            <button type="submit">Generate Plan</button>
-          </form>
+                <!-- Personal & Daily Life -->
+                <div class="topic-group">
+                  <div class="group-title">Personal & Daily Life</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Introducing yourself"
+                      />
+                      Introducing yourself</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Family & relationships"
+                      />
+                      Family & relationships</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Daily routine"
+                      />
+                      Daily routine</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Hobbies & interests"
+                      />
+                      Hobbies & interests</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Health & fitness"
+                      />
+                      Health & fitness</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Food & cooking"
+                      />
+                      Food & cooking</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Shopping & budgeting"
+                      />
+                      Shopping & budgeting</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="My city & neighborhood"
+                      />
+                      My city & neighborhood</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Getting around (transportation)"
+                      />
+                      Getting around (transportation)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Meeting an American for the first time"
+                      />
+                      Meeting an American for the first time</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Making friends & socializing"
+                      />
+                      Making friends & socializing</label
+                    >
+                  </div>
+                </div>
 
-          <div id="coursePlan" class="plan-output"></div>
+                <!-- Grammar & Tenses (in conversation) -->
+                <div class="topic-group">
+                  <div class="group-title">
+                    Grammar & Tenses (in conversation)
+                  </div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Present tense (simple/continuous)"
+                      />
+                      Present tense (simple/continuous)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Past tense (simple/continuous)"
+                      />
+                      Past tense (simple/continuous)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Present perfect vs. past simple"
+                      />
+                      Present perfect vs. past simple</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Future forms (will/going to/present continuous)"
+                      />
+                      Future forms (will/going to/present continuous)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Conditionals (0–3 & mixed)"
+                      />
+                      Conditionals (0–3 & mixed)</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Modals for advice & obligation"
+                      />
+                      Modals for advice & obligation</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Comparatives & superlatives"
+                      />
+                      Comparatives & superlatives</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Articles & quantifiers"
+                      />
+                      Articles & quantifiers</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Phrasal verbs in context"
+                      />
+                      Phrasal verbs in context</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Reported speech"
+                      />
+                      Reported speech</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Question forms & follow-ups"
+                      />
+                      Question forms & follow-ups</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Places, Community & Culture -->
+                <div class="topic-group">
+                  <div class="group-title">Places, Community & Culture</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Describing places & landmarks"
+                      />
+                      Describing places & landmarks</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Culture & etiquette"
+                      />
+                      Culture & etiquette</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Holidays & traditions"
+                      />
+                      Holidays & traditions</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Festivals & events"
+                      />
+                      Festivals & events</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="News & current events"
+                      />
+                      News & current events</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Arts, music & movies"
+                      />
+                      Arts, music & movies</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Sports & recreation"
+                      />
+                      Sports & recreation</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Nature & environment"
+                      />
+                      Nature & environment</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Travel -->
+                <div class="topic-group">
+                  <div class="group-title">Travel</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Travel planning & itineraries"
+                      />
+                      Travel planning & itineraries</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Airports & flights"
+                      />
+                      Airports & flights</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Hotels & check-in"
+                      />
+                      Hotels & check-in</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Restaurants & ordering"
+                      />
+                      Restaurants & ordering</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Directions & navigation"
+                      />
+                      Directions & navigation</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Problems while traveling"
+                      />
+                      Problems while traveling</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Work & Study -->
+                <div class="topic-group">
+                  <div class="group-title">Work & Study</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Job interviews"
+                      />
+                      Job interviews</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Workplace communication"
+                      />
+                      Workplace communication</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Meetings & stand-ups"
+                      />
+                      Meetings & stand-ups</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Presentations & pitching"
+                      />
+                      Presentations & pitching</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Negotiation & persuasion"
+                      />
+                      Negotiation & persuasion</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Emails & professional writing"
+                      />
+                      Emails & professional writing</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Customer service & support"
+                      />
+                      Customer service & support</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Academic discussion & seminars"
+                      />
+                      Academic discussion & seminars</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="IELTS/TOEFL speaking practice"
+                      />
+                      IELTS/TOEFL speaking practice</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Role Plays / Scenarios -->
+                <div class="topic-group">
+                  <div class="group-title">Role Plays / Scenarios</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Meeting someone for the first time"
+                      />
+                      Meeting someone for the first time</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Phone calls & voicemail"
+                      />
+                      Phone calls & voicemail</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Making appointments"
+                      />
+                      Making appointments</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Returning an item"
+                      />
+                      Returning an item</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Doctor & clinic visit"
+                      />
+                      Doctor & clinic visit</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Bank account & services"
+                      />
+                      Bank account & services</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Complaint/resolution at a store"
+                      />
+                      Complaint/resolution at a store</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Emergency situation"
+                      />
+                      Emergency situation</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Housing & landlord chat"
+                      />
+                      Housing & landlord chat</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="School/teacher meeting"
+                      />
+                      School/teacher meeting</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Immigration/border questions"
+                      />
+                      Immigration/border questions</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Conversation Skills -->
+                <div class="topic-group">
+                  <div class="group-title">Conversation Skills</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Asking follow-up questions"
+                      />
+                      Asking follow-up questions</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Paraphrasing & clarifying"
+                      />
+                      Paraphrasing & clarifying</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Agreeing & disagreeing politely"
+                      />
+                      Agreeing & disagreeing politely</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Storytelling & past experiences"
+                      />
+                      Storytelling & past experiences</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Describing people & things"
+                      />
+                      Describing people & things</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Expressing opinions & feelings"
+                      />
+                      Expressing opinions & feelings</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Giving directions & instructions"
+                      />
+                      Giving directions & instructions</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Making suggestions & offers"
+                      />
+                      Making suggestions & offers</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Comparing & contrasting"
+                      />
+                      Comparing & contrasting</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Learning Skills -->
+                <div class="topic-group">
+                  <div class="group-title">Learning Skills</div>
+                  <div class="topic-grid">
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Vocabulary expansion"
+                      />
+                      Vocabulary expansion</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Grammar in conversation"
+                      />
+                      Grammar in conversation</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Fluency—speak without pausing"
+                      />
+                      Fluency—speak without pausing</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Confidence building"
+                      />
+                      Confidence building</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Accent reduction strategies"
+                      />
+                      Accent reduction strategies</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Intonation & stress"
+                      />
+                      Intonation & stress</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Common mistakes to avoid"
+                      />
+                      Common mistakes to avoid</label
+                    >
+                    <label
+                      ><input
+                        type="checkbox"
+                        class="topic-checkbox"
+                        value="Study plans & routines"
+                      />
+                      Study plans & routines</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Custom -->
+                <div
+                  class="topic-custom"
+                  style="
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    margin-top: 8px;
+                  "
+                >
+                  <input
+                    id="topicCustom"
+                    type="text"
+                    placeholder="Add your own topic…"
+                  />
+                  <button
+                    type="button"
+                    id="addCustomTopicBtn"
+                    class="btn-ghost"
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <!-- Chosen chips -->
+                <div
+                  id="chosenTopics"
+                  class="chips"
+                  aria-live="polite"
+                  style="margin-top: 6px"
+                ></div>
+              </div>
+
+              <!-- ACTFL Level -->
+              <label for="actflSelect">ACTFL proficiency</label>
+              <select id="actflSelect">
+                <optgroup label="Novice">
+                  <option>Novice Low</option>
+                  <option>Novice Mid</option>
+                  <option>Novice High</option>
+                </optgroup>
+                <optgroup label="Intermediate">
+                  <option>Intermediate Low</option>
+                  <option selected>Intermediate Mid</option>
+                  <option>Intermediate High</option>
+                </optgroup>
+                <optgroup label="Advanced">
+                  <option>Advanced Low</option>
+                  <option>Advanced Mid</option>
+                  <option>Advanced High</option>
+                </optgroup>
+                <optgroup label="Superior & Distinguished">
+                  <option>Superior</option>
+                  <option>Distinguished</option>
+                </optgroup>
+              </select>
+
+              <!-- Actions -->
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  justify-content: flex-end;
+                  margin-top: 4px;
+                "
+              >
+                <button type="submit">Start</button>
+                <button type="button" class="btn-ghost" id="clearSurveyBtn">
+                  Clear
+                </button>
+              </div>
+            </form>
+
+            <!-- Confirmation output (reused by JS) -->
+            <div
+              id="coursePlan"
+              class="plan-output"
+              style="margin-top: 10px"
+            ></div>
+          </div>
         </section>
 
-        <!-- Certificate Panel -->
+        <!-- ===== Certificate Panel ===== -->
         <section id="certificate" class="panel">
-          <h2>🏆 Certificate of Completion</h2>
-          <p>
-            Once you finish your course, you’ll get a personalized certificate.
-          </p>
-          <input type="text" id="certName" placeholder="Enter your name" />
-          <input
-            type="text"
-            id="certLevel"
-            placeholder="Enter your level (A2–C1)"
-          />
-          <button id="generateCertBtn">Generate Certificate</button>
-          <div id="certOutput"></div>
+          <div class="card" style="padding: 14px">
+            <h2 style="margin: 0 0 6px">🏆 Certificate of Completion</h2>
+            <p class="text-muted" style="margin: 0 0 12px">
+              Once you finish your course, you’ll get a personalized
+              certificate.
+            </p>
+
+            <div
+              class="grid"
+              style="display: grid; gap: 10px; grid-template-columns: 1fr 1fr"
+            >
+              <input type="text" id="certName" placeholder="Your name" />
+              <input type="text" id="certLevel" placeholder="Level (A2–C1)" />
+            </div>
+
+            <div
+              style="
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+                margin-top: 10px;
+              "
+            >
+              <button id="generateCertBtn">Generate Certificate</button>
+              <button id="downloadCertBtn" class="btn-ghost">Download</button>
+            </div>
+
+            <div
+              id="certOutput"
+              class="card"
+              style="margin-top: 12px; padding: 12px"
+            ></div>
+          </div>
         </section>
       </main>
 
+      <!-- ===== Bottom Nav (Tabs) ===== -->
       <nav>
         <button class="nav-btn active" data-target="conversation">
-          💬 Conversation
+          💬 Start a Conversation
         </button>
-        <button class="nav-btn" data-target="survey">🧭 Survey</button>
+        <button class="nav-btn" data-target="survey">
+          🧭 Build Your Lesson
+        </button>
         <button class="nav-btn" data-target="certificate">
           📜 Certificate
         </button>
       </nav>
     </div>
 
+    <!-- Optional: tiny typing indicator template (for JS to clone) -->
+    <template id="typingTpl">
+      <div class="msg ai">
+        <div class="typing">
+          <span class="dot"></span><span class="dot"></span
+          ><span class="dot"></span>
+        </div>
+      </div>
+    </template>
+
+    <!-- map the bare specifier "three" to the actual CDN URL -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+
+    <!-- ===== Access Gate + ADMIN Logic (front-end / device-bound) ===== -->
+    <script>
+      // ==== 0) ADMIN PASSWORD (edit this!) ==================================
+      // Store only the SHA-256 hash of your admin password here.
+      // Default is the hash for the password "admin9". CHANGE THIS!
+      const ADMIN_PASS_SHA256 =
+        "5af8e0e30c774a6bb3421abad179462117ad72b4081b5f4850e92866344b0785";
+      const ADMIN_SESSION_KEY = "ehki.admin.session";
+      const ADMIN_SESSION_EXP = "ehki.admin.session.exp"; // epoch ms
+      const ADMIN_SESSION_MINUTES = 45; // how long admin stays signed in
+
+      async function sha256Hex(text) {
+        const enc = new TextEncoder().encode(text);
+        const buf = await crypto.subtle.digest("SHA-256", enc);
+        return Array.from(new Uint8Array(buf))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      function adminIsAuthed() {
+        const flag = sessionStorage.getItem(ADMIN_SESSION_KEY) === "ok";
+        const exp = Number(sessionStorage.getItem(ADMIN_SESSION_EXP) || 0);
+        if (!flag || !exp) return false;
+        if (Date.now() > exp) {
+          adminSignout();
+          return false;
+        }
+        return true;
+      }
+      function adminMarkAuthed() {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, "ok");
+        sessionStorage.setItem(
+          ADMIN_SESSION_EXP,
+          String(Date.now() + ADMIN_SESSION_MINUTES * 60 * 1000)
+        );
+        // show admin menu button if app is visible
+        const btn = document.getElementById("accessMenuBtn");
+        btn.style.display = "inline-block";
+        document.getElementById("adminStatusMsg").textContent =
+          "Admin session is active.";
+      }
+      function adminSignout() {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        sessionStorage.removeItem(ADMIN_SESSION_EXP);
+        document.getElementById("accessMenuBtn").style.display = "none";
+        document.getElementById("adminStatusMsg").textContent =
+          "Admin signed out.";
+      }
+
+      // ==== 1) Predefined codes you manage manually (edit these) ============
+      // You can hand each user one unique code. You can also add metadata (plan, note, expiresAt).
+      const PRESET_CODES = {
+        "EHKI-ABCD-1234": { plan: "pro", note: "Pilot user 1" },
+        "EHKI-ALPHA-2025": { plan: "pro", note: "Paid transfer" },
+        "EHKI-TRIAL-7D": {
+          plan: "trial",
+          note: "7-day trial",
+          expiresAt: "2025-12-31",
+        },
+        // Add more...
+      };
+
+      // Storage key
+      const LICENSE_KEY = "ehki.license.v1";
+
+      // Basic device fingerprint (browser-only, not bulletproof)
+      async function getDeviceId() {
+        const data = [
+          navigator.userAgent,
+          navigator.platform,
+          (navigator.language || "") +
+            ":" +
+            (navigator.languages || []).join(","),
+          String(screen.width) +
+            "x" +
+            String(screen.height) +
+            "@" +
+            String(window.devicePixelRatio || 1),
+          String(navigator.hardwareConcurrency || ""),
+        ].join("|");
+
+        const enc = new TextEncoder().encode(data);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", enc);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("")
+          .slice(0, 40);
+      }
+
+      function loadLicense() {
+        try {
+          return JSON.parse(localStorage.getItem(LICENSE_KEY) || "null");
+        } catch {
+          return null;
+        }
+      }
+      function saveLicense(lic) {
+        localStorage.setItem(LICENSE_KEY, JSON.stringify(lic));
+      }
+      function clearLicense() {
+        localStorage.removeItem(LICENSE_KEY);
+      }
+
+      function isExpired(iso) {
+        if (!iso) return false;
+        const now = new Date();
+        const exp = new Date(iso);
+        return isFinite(exp) && now > exp;
+      }
+
+      async function tryAutoUnlock() {
+        const lic = loadLicense();
+        if (!lic) return false;
+
+        // Basic checks
+        if (!lic.code || !lic.deviceId) return false;
+        if (!PRESET_CODES[lic.code]) return false;
+        if (isExpired(PRESET_CODES[lic.code]?.expiresAt)) return false;
+
+        // Confirm device matches
+        const currentId = await getDeviceId();
+        if (currentId !== lic.deviceId) {
+          return false;
+        }
+        showApp(lic);
+        return true;
+      }
+
+      async function doUnlock(inputCode) {
+        const code = String(inputCode || "").trim();
+        const msg = document.getElementById("gateMsg");
+        msg.className = "";
+        msg.textContent = "";
+
+        if (!code) {
+          msg.className = "err";
+          msg.textContent = "Enter your access code.";
+          return;
+        }
+        const record = PRESET_CODES[code];
+        if (!record) {
+          msg.className = "err";
+          msg.textContent = "Invalid code. Double-check and try again.";
+          return;
+        }
+        if (isExpired(record.expiresAt)) {
+          msg.className = "err";
+          msg.textContent = "This code has expired.";
+          return;
+        }
+        const deviceId = await getDeviceId();
+        const license = {
+          code,
+          plan: record.plan || "basic",
+          note: record.note || "",
+          deviceId,
+          activatedAt: new Date().toISOString(),
+        };
+        saveLicense(license);
+        msg.className = "ok";
+        msg.textContent = "Unlocked! Loading…";
+        setTimeout(() => showApp(license), 250);
+      }
+
+      function showApp(license) {
+        // Hide gate, show app
+        document.getElementById("accessGate").classList.add("hidden");
+        document.querySelector(".app-container").style.display = "block";
+
+        // Show admin menu button ONLY if admin is already signed in
+        const btn = document.getElementById("accessMenuBtn");
+        btn.style.display = adminIsAuthed() ? "inline-block" : "none";
+        updateAccessMenu(license);
+      }
+
+      async function updateAccessMenu(license = loadLicense()) {
+        const info = document.getElementById("licenseInfo");
+        if (!license) {
+          info.textContent = "No license on this device.";
+          return;
+        }
+        const meta = PRESET_CODES[license.code] || {};
+        info.innerHTML = `
+          <div><strong>Plan:</strong> ${license.plan}</div>
+          <div><strong>Code:</strong> <code>${license.code}</code></div>
+          ${
+            meta.expiresAt
+              ? `<div><strong>Expires:</strong> ${meta.expiresAt}</div>`
+              : ""
+          }
+          ${
+            license.note
+              ? `<div><strong>Note:</strong> ${license.note}</div>`
+              : ""
+          }
+          <div class="small"><strong>Activated:</strong> ${new Date(
+            license.activatedAt
+          ).toLocaleString()}</div>
+        `;
+      }
+
+      function toggleAccessMenu(force) {
+        const accessMenu = document.getElementById("accessMenu");
+        const open =
+          typeof force === "boolean"
+            ? force
+            : accessMenu.style.display === "none" ||
+              accessMenu.style.display === "";
+        accessMenu.style.display = open ? "block" : "none";
+        if (open) updateAccessMenu();
+      }
+
+      // ==== ADMIN gate controls =================================================
+      let adminAttempts = 0;
+      const ADMIN_LOCK_MS = 30_000; // cooldown after too many attempts
+      let adminLockUntil = 0;
+
+      function openAdminGate() {
+        if (Date.now() < adminLockUntil) {
+          const left = Math.ceil((adminLockUntil - Date.now()) / 1000);
+          const adminMsg = document.getElementById("adminMsg");
+          adminMsg.className = "err";
+          adminMsg.textContent = `Too many attempts. Try again in ${left}s.`;
+          document.getElementById("adminGate").classList.remove("hidden");
+          return;
+        }
+        document.getElementById("adminPassInput").value = "";
+        document.getElementById("adminMsg").textContent = "";
+        document.getElementById("adminMsg").className = "";
+        document.getElementById("adminGate").classList.remove("hidden");
+        setTimeout(
+          () => document.getElementById("adminPassInput").focus(),
+          100
+        );
+      }
+      function closeAdminGate() {
+        document.getElementById("adminGate").classList.add("hidden");
+      }
+
+      async function tryAdminLogin() {
+        const adminMsg = document.getElementById("adminMsg");
+        adminMsg.className = "";
+        adminMsg.textContent = "";
+
+        if (Date.now() < adminLockUntil) {
+          const left = Math.ceil((adminLockUntil - Date.now()) / 1000);
+          adminMsg.className = "err";
+          adminMsg.textContent = `Locked. Try again in ${left}s.`;
+          return;
+        }
+
+        const pass = document.getElementById("adminPassInput").value || "";
+        const hash = await sha256Hex(pass);
+        if (hash === ADMIN_PASS_SHA256) {
+          adminAttempts = 0;
+          adminLockUntil = 0;
+          adminMarkAuthed();
+          adminMsg.className = "ok";
+          adminMsg.textContent = "Admin authenticated.";
+          closeAdminGate();
+          // If app is visible, ensure menu button shows
+          if (
+            !document.getElementById("accessGate").classList.contains("hidden")
+          ) {
+            // Still on lock screen; nothing else to do.
+          } else {
+            document.getElementById("accessMenuBtn").style.display =
+              "inline-block";
+          }
+        } else {
+          adminAttempts++;
+          adminMsg.className = "err";
+          adminMsg.textContent = "Incorrect password.";
+          if (adminAttempts >= 5) {
+            adminLockUntil = Date.now() + ADMIN_LOCK_MS;
+            adminMsg.textContent = "Too many attempts. Try again in 30s.";
+          }
+        }
+      }
+
+      // ==== Wire up gate & admin UI ===========================================
+      (function initGates() {
+        const input = document.getElementById("accessCodeInput");
+        const unlockBtn = document.getElementById("unlockBtn");
+        const pasteBtn = document.getElementById("pasteBtn");
+        const accessMenuBtn = document.getElementById("accessMenuBtn");
+        const accessMenu = document.getElementById("accessMenu");
+        const resetLicenseBtn = document.getElementById("resetLicenseBtn");
+        const copyDeviceIdBtn = document.getElementById("copyDeviceIdBtn");
+        const adminOpenLink = document.getElementById("adminOpenLink");
+        const adminLoginBtn = document.getElementById("adminLoginBtn");
+        const adminCancelBtn = document.getElementById("adminCancelBtn");
+        const adminSignoutBtn = document.getElementById("adminSignoutBtn");
+        const closeMenuBtn = document.getElementById("closeMenuBtn");
+
+        // Code unlock
+        unlockBtn.addEventListener("click", () => doUnlock(input.value));
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") doUnlock(input.value);
+        });
+        pasteBtn.addEventListener("click", async () => {
+          try {
+            const t = await navigator.clipboard.readText();
+            input.value = (t || "").trim();
+          } catch {
+            const msg = document.getElementById("gateMsg");
+            msg.className = "err";
+            msg.textContent = "Clipboard blocked—paste manually (Ctrl/Cmd+V).";
+          }
+        });
+
+        // Admin open link + hotkey
+        adminOpenLink.addEventListener("click", openAdminGate);
+        window.addEventListener("keydown", (e) => {
+          if (e.ctrlKey && e.altKey && (e.key === "a" || e.key === "A")) {
+            openAdminGate();
+          }
+        });
+
+        // Admin gate controls
+        adminLoginBtn.addEventListener("click", tryAdminLogin);
+        adminCancelBtn.addEventListener("click", closeAdminGate);
+        document
+          .getElementById("adminPassInput")
+          .addEventListener("keydown", (e) => {
+            if (e.key === "Enter") tryAdminLogin();
+            if (e.key === "Escape") closeAdminGate();
+          });
+
+        // Manage access menu toggle (ADMIN only)
+        accessMenuBtn.addEventListener("click", () => {
+          if (!adminIsAuthed()) {
+            openAdminGate();
+            return;
+          }
+          toggleAccessMenu();
+        });
+        closeMenuBtn.addEventListener("click", () => toggleAccessMenu(false));
+
+        // Protected actions (require ADMIN)
+        resetLicenseBtn.addEventListener("click", () => {
+          if (!adminIsAuthed()) {
+            openAdminGate();
+            return;
+          }
+          clearLicense();
+          accessMenu.style.display = "none";
+          // Lock again
+          document.querySelector(".app-container").style.display = "none";
+          const gate = document.getElementById("accessGate");
+          gate.classList.remove("hidden");
+          const msg = document.getElementById("gateMsg");
+          msg.className = "";
+          msg.textContent = "License reset on this device.";
+        });
+        copyDeviceIdBtn.addEventListener("click", async () => {
+          if (!adminIsAuthed()) {
+            openAdminGate();
+            return;
+          }
+          const id = await getDeviceId();
+          await navigator.clipboard.writeText(id);
+          updateAccessMenu();
+          const p = document.getElementById("licenseInfo");
+          const small = document.createElement("div");
+          small.className = "small";
+          small.textContent = "Device ID copied.";
+          p.appendChild(small);
+          setTimeout(() => small.remove(), 1200);
+        });
+
+        // Admin signout
+        adminSignoutBtn.addEventListener("click", () => {
+          adminSignout();
+          toggleAccessMenu(false);
+        });
+
+        // Restore admin session visibility on load
+        if (adminIsAuthed()) {
+          document.getElementById("accessMenuBtn").style.display =
+            "inline-block";
+        }
+
+        // Try auto-unlock if license exists and matches this device
+        tryAutoUnlock();
+      })();
+    </script>
+
+    <!-- ===== Your existing 3D head module ===== -->
+    <script type="module">
+      /* ======= Ehki AI — 3D Talking Head (responsive, no bundler) ======= */
+      import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+      import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+
+      /* DOM refs */
+      const canvas = document.getElementById("aiHeadCanvas");
+      const wrap = document.getElementById("aiHeadWrap");
+
+      /* Scene setup */
+      const scene = new THREE.Scene();
+      scene.background = null;
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+      camera.position.set(0, 0.5, 2.2);
+      scene.add(camera);
+
+      /* Responsive sizing */
+      function setViewport(w, h) {
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+      const ro = new ResizeObserver((entries) => {
+        for (const e of entries) {
+          const w = Math.max(240, e.contentRect.width);
+          const h = Math.max(220, (w * 3) / 4); // 4:3 aspect for taller frame
+          setViewport(w, h);
+        }
+      });
+      ro.observe(wrap);
+      setViewport(wrap.clientWidth || 480, 360);
+
+      /* Lights */
+      const key = new THREE.DirectionalLight(0xffffff, 1.1);
+      key.position.set(2, 3, 3);
+      const fill = new THREE.DirectionalLight(0x9fdcff, 0.6);
+      fill.position.set(-2, 1.5, 2);
+      const rim = new THREE.DirectionalLight(0x00e0ff, 0.5);
+      rim.position.set(0, 1, -2.5);
+      const amb = new THREE.AmbientLight(0xffffff, 0.55);
+      scene.add(key, fill, rim, amb);
+
+      /* Model / fallback */
+      const loader = new GLTFLoader();
+      let headRoot = null,
+        jawBone = null,
+        eyesL = null,
+        eyesR = null,
+        fallbackMouth = null;
+
+      // Utility: fit camera nicely around any model
+      function fitCameraToObject(obj, { padding = 1.3, yOffset = 0 } = {}) {
+        const box = new THREE.Box3().setFromObject(obj);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = THREE.MathUtils.degToRad(camera.fov);
+        const dist = (padding * maxDim) / (2 * Math.tan(fov / 2));
+        camera.position.set(center.x, center.y + yOffset, center.z + dist);
+        camera.lookAt(center);
+        camera.near = Math.max(0.01, dist - maxDim * 2);
+        camera.far = dist + maxDim * 2;
+        camera.updateProjectionMatrix();
+      }
+
+      const HEAD_URL = "./assets/coach_head.glb";
+
+      try {
+        await new Promise((resolve, reject) => {
+          loader.load(
+            HEAD_URL,
+            (gltf) => {
+              headRoot = gltf.scene;
+              headRoot.traverse((o) => (o.frustumCulled = false));
+
+              jawBone =
+                headRoot.getObjectByName("Jaw") ||
+                headRoot.getObjectByName("jaw") ||
+                headRoot.getObjectByName("JawBone") ||
+                null;
+              eyesL =
+                headRoot.getObjectByName("Eye_L") ||
+                headRoot.getObjectByName("eye_L") ||
+                null;
+              eyesR =
+                headRoot.getObjectByName("Eye_R") ||
+                headRoot.getObjectByName("eye_R") ||
+                null;
+
+              scene.add(headRoot);
+              fitCameraToObject(headRoot, { padding: 1.3, yOffset: -0.05 });
+              resolve();
+            },
+            undefined,
+            (err) => reject(err)
+          );
+        });
+      } catch {
+        // Fallback head
+        const head = new THREE.Mesh(
+          new THREE.SphereGeometry(0.8, 48, 48),
+          new THREE.MeshStandardMaterial({
+            color: 0x1b2540,
+            roughness: 0.45,
+            metalness: 0.1,
+          })
+        );
+        headRoot = new THREE.Group();
+        headRoot.add(head);
+
+        const mouth = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.28, 0.06),
+          new THREE.MeshBasicMaterial({ color: 0xffffff })
+        );
+        mouth.position.set(0, -0.15, 0.78);
+        mouth.rotation.x = -0.05;
+        headRoot.add(mouth);
+        fallbackMouth = mouth;
+
+        const eyeMat = new THREE.MeshBasicMaterial({ color: 0x97c7ff });
+        const eyeGeom = new THREE.SphereGeometry(0.06, 16, 16);
+        eyesL = new THREE.Mesh(eyeGeom, eyeMat);
+        eyesL.position.set(-0.22, 0.18, 0.74);
+        eyesR = new THREE.Mesh(eyeGeom, eyeMat);
+        eyesR.position.set(0.22, 0.18, 0.74);
+        headRoot.add(eyesL, eyesR);
+
+        scene.add(headRoot);
+        fitCameraToObject(headRoot, { padding: 1.3, yOffset: -0.05 });
+      }
+
+      /* Idle animations */
+      let blinkTimer = 0,
+        nextBlink = rand(1.8, 3.6);
+      let blinkT = 0,
+        blinking = false;
+      function runBlink(dur) {
+        blinking = true;
+        blinkT = dur;
+      }
+      function blink(dt) {
+        blinkTimer += dt;
+        if (blinkTimer > nextBlink) {
+          blinkTimer = 0;
+          nextBlink = rand(2.0, 4.0);
+          runBlink(0.16);
+        }
+      }
+      function updateBlink(dt) {
+        if (!eyesL || !eyesR || !blinking) return;
+        blinkT -= dt;
+        const t = Math.max(blinkT, 0) / 0.16;
+        const k = t > 0.5 ? (1 - t) * 2 : t * 2;
+        const scl = 1 - k * 0.8;
+        eyesL.scale.y = eyesR.scale.y = Math.max(0.15, scl);
+        if (blinkT <= 0) {
+          blinking = false;
+          eyesL.scale.y = eyesR.scale.y = 1;
+        }
+      }
+
+      /* Pointer follow */
+      let pointer = new THREE.Vector2(0, 0);
+      window.addEventListener("pointermove", (e) => {
+        const r = canvas.getBoundingClientRect();
+        pointer.x = ((e.clientX - r.left) / Math.max(r.width, 1) - 0.5) * 2;
+        pointer.y = ((e.clientY - r.top) / Math.max(r.height, 1) - 0.5) * -2;
+      });
+
+      /* Audio-driven lip sync */
+      let audioCtx = null,
+        analyser = null,
+        data = null,
+        attachedAudio = null;
+      function attachAudio(el) {
+        if (!audioCtx)
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (attachedAudio === el && analyser) return;
+
+        const resume = () => {
+          audioCtx.resume?.();
+          window.removeEventListener("pointerdown", resume);
+        };
+        window.addEventListener("pointerdown", resume, { once: true });
+
+        const src = audioCtx.createMediaElementSource(el);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        src.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        data = new Uint8Array(analyser.frequencyBinCount);
+        attachedAudio = el;
+      }
+
+      function mouthOpenAmt() {
+        if (!analyser || !data) return 0;
+        analyser.getByteFrequencyData(data);
+        let sum = 0,
+          count = 0;
+        for (let i = 4; i < 40; i++) {
+          sum += data[i];
+          count++;
+        }
+        const avg = sum / Math.max(count, 1);
+        return Math.min(1, avg / 180);
+      }
+
+      /* Render loop */
+      let tPrev = performance.now();
+      function tick(now = performance.now()) {
+        const dt = Math.min(0.05, (now - tPrev) / 1000);
+        tPrev = now;
+
+        if (headRoot) {
+          const targetX = THREE.MathUtils.lerp(
+            headRoot.rotation.y,
+            pointer.x * 0.15,
+            0.08
+          );
+          const targetY = THREE.MathUtils.lerp(
+            headRoot.rotation.x,
+            pointer.y * 0.1,
+            0.08
+          );
+          headRoot.rotation.set(targetY, targetX, 0);
+          headRoot.position.y = Math.sin(now * 0.0018) * 0.02 - 0.2;
+        }
+
+        blink(dt);
+        updateBlink(dt);
+
+        const open = mouthOpenAmt();
+        if (jawBone) jawBone.rotation.x = -0.06 - open * 0.28;
+        else if (fallbackMouth) fallbackMouth.scale.y = 1 + open * 3.2;
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      }
+      tick();
+
+      /* Utils */
+      function rand(a, b) {
+        return a + Math.random() * (b - a);
+      }
+
+      /* Public API for app.js */
+      window.Head3D = {
+        attach(audioEl) {
+          attachAudio(audioEl);
+        },
+        setLook(x = -0.1, y = 0) {
+          if (!headRoot) return;
+          headRoot.rotation.y = x;
+          headRoot.rotation.x = y;
+        },
+        isReady() {
+          return !!headRoot;
+        },
+      };
+    </script>
+
+    <!-- Your app logic -->
     <script src="app.js"></script>
   </body>
 </html>

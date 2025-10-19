@@ -1,174 +1,1413 @@
+/* =====================================================================================
+   SpeakUp — Modern Apple-inspired UI
+   - Glass panels, soft depth, subtle gradients, crisp typography
+   - Fully responsive (mobile-first → ultrawide)
+   - Beautiful defaults for every element in your HTML
+   ===================================================================================== */
+
+/* ------------------ Design Tokens ------------------ */
 :root {
-  --bg: #0b0b10;
-  --panel: #12121a;
-  --text: #e9f0ff;
-  --muted: #93a0b8;
-  --acc1: #1da1f2;
+  /* Surfaces */
+  --bg: #0b0c10;
+  --bg-alt: #0e1117;
+  --panel: rgba(20, 22, 28, 0.72);
+  --panel-2: rgba(24, 27, 35, 0.68);
+  --card: rgba(22, 24, 31, 0.8);
+  --border: 1px solid rgba(255, 255, 255, 0.08);
+  --divider: rgba(255, 255, 255, 0.09);
+
+  /* Text */
+  --text: #ecf1ff;
+  --text-strong: #ffffff;
+  --muted: #9aa8c1;
+  --muted-2: #7f8aa3;
+
+  /* Accents (cool azure + cyan) */
+  --acc1: #3a86ff;
   --acc2: #00e0ff;
-  --me: #005cff;
-  --ai: #1a1f2e;
+  --accent-grad: linear-gradient(140deg, #3a86ff 0%, #00e0ff 100%);
+
+  /* State */
+  --success: #28d17c;
+  --warn: #ffcc66;
+  --danger: #ff6b6b;
+
+  /* Radii & Effects */
+  --radius: 16px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.25);
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+  --ring: 0 0 0 3px rgba(58, 134, 255, 0.25);
+
+  /* Sizing */
+  --maxw: 1200px;
+  --gap: 14px;
 }
 
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ------------------ Base Reset ------------------ */
 * {
   box-sizing: border-box;
 }
-
+html,
 body {
-  margin: 0;
-  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  background: radial-gradient(800px 600px at 20% -20%, #0e1c2a, #0b0b10),
-    var(--bg);
-  color: var(--text);
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.app-container {
-  width: min(1000px, 95%);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  height: 90vh;
-}
-
-header {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-h1 {
-  margin: 0;
-  font-size: 28px;
-  background: linear-gradient(90deg, var(--acc1), var(--acc2));
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-main {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.panel {
-  display: none;
-  flex-direction: column;
-  width: 100%;
   height: 100%;
 }
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  margin: 0;
+  font-family: ui-sans-serif, -apple-system, "SF Pro Text", Inter, Segoe UI,
+    Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--text);
+  background: radial-gradient(
+      1200px 800px at 20% -10%,
+      rgba(58, 134, 255, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 110% 20%,
+      rgba(0, 224, 255, 0.12),
+      transparent 60%
+    ),
+    var(--bg);
+  letter-spacing: 0.2px;
+}
 
-.panel.active {
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Utility */
+.text-muted {
+  color: var(--muted);
+}
+.hr {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--divider), transparent);
+  margin: 10px 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
+  border: var(--border);
+  color: var(--text);
+  backdrop-filter: blur(8px);
+}
+
+/* ------------------ App Container ------------------ */
+.app-container {
+  max-width: var(--maxw);
+  margin: 24px auto;
+  padding: 18px;
+}
+
+/* ------------------ Header ------------------ */
+header {
   display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px;
+  background: var(--panel);
+  border: var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
+}
+header h1 {
+  font-weight: 700;
+  font-size: clamp(20px, 2vw + 10px, 28px);
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.chat-box {
-  flex: 1;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.03);
+/* Voice select / preview */
+.voice-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: var(--border);
+  background: var(--panel-2);
+  backdrop-filter: blur(12px);
+}
+.voice-select {
+  appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  padding: 6px 2px;
+  min-width: 200px;
+}
+.voice-select:focus-visible {
+  box-shadow: var(--ring);
+  border-radius: 10px;
+}
+
+/* ------------------ Navigation (Tabs) ------------------ */
+nav {
+  position: sticky;
+  bottom: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.07),
+    rgba(255, 255, 255, 0.03)
+  );
+  border: var(--border);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+}
+.nav-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: var(--text);
+  background: transparent;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.nav-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
+}
+.nav-btn.active {
+  background: var(--accent-grad);
+  color: #06111a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
+/* ------------------ Panels & Layout ------------------ */
+main {
+  margin-top: 16px;
+}
+.panel {
+  display: none;
+}
+.panel.active {
+  display: block;
+}
+
+.layout {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 980px) {
+  .layout {
+    grid-template-columns: 1.2fr 0.9fr;
+  }
+}
+
+.card {
+  background: var(--card);
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  padding: 12px;
+}
+
+/* ------------------ Chat Area ------------------ */
+.chat-box {
+  min-height: 46vh;
+  max-height: min(64vh, 700px);
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+  border-radius: var(--radius);
+}
+
+/* Scrollbars */
+.chat-box::-webkit-scrollbar,
+.feedback-scroll::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+.chat-box::-webkit-scrollbar-thumb,
+.feedback-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.07)
+  );
+  border-radius: 999px;
+}
+
+/* Messages */
 .msg {
-  max-width: 75%;
-  padding: 8px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 92%;
+}
+.msg .bubble {
+  padding: 10px 12px;
   border-radius: 14px;
-  margin: 6px 0;
-  line-height: 1.4;
-  word-wrap: break-word;
+  border: var(--border);
+  line-height: 1.35;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+  transform-origin: 0 100%;
+  animation: pop 0.15s ease-out;
+}
+@keyframes pop {
+  from {
+    transform: scale(0.98);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.msg.me {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+.msg.me .bubble {
+  background: linear-gradient(
+    180deg,
+    rgba(58, 134, 255, 0.22),
+    rgba(0, 224, 255, 0.18)
+  );
+  color: var(--text-strong);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.msg.ai .bubble {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
+  color: var(--text);
 }
 
-.msg.ai {
-  background: var(--ai);
-  align-self: flex-start;
+/* Tiny avatar dots (optional if you add images later) */
+.msg::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-top: 10px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #cfd7ff, #8fbfff);
+  opacity: 0.5;
+}
+.msg.me::before {
+  background: linear-gradient(180deg, #66d1ff, #3a86ff);
 }
 
-.msg.user {
-  background: var(--me);
-  color: #fff;
-  align-self: flex-end;
+/* Typing indicator */
+.typing {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  animation: pulse 1.2s infinite ease-in-out;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes pulse {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
+/* ------------------ Controls ------------------ */
 .controls {
   display: flex;
   gap: 8px;
-}
-
-input,
-textarea,
-select,
-button {
-  font-family: inherit;
-  font-size: 14px;
-}
-
-input[type="text"],
-textarea,
-select {
-  background: var(--panel);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text);
-  border-radius: 8px;
+  align-items: center;
+  margin-top: 10px;
+  background: var(--panel-2);
+  border: var(--border);
+  border-radius: 14px;
   padding: 8px;
-  width: 100%;
+  box-shadow: var(--shadow-sm);
 }
-
-button {
-  background: linear-gradient(90deg, var(--acc1), var(--acc2));
+.controls input[type="text"] {
+  flex: 1;
+  min-width: 120px;
+  background: transparent;
   border: none;
-  color: #fff;
-  font-weight: bold;
-  border-radius: 8px;
-  padding: 10px 16px;
+  outline: none;
+  color: var(--text);
+  font-size: 15px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.controls input::placeholder {
+  color: color-mix(in oklab, var(--muted) 80%, white 10%);
+}
+
+/* Buttons */
+button {
+  appearance: none;
+  border: none;
   cursor: pointer;
-  transition: 0.2s;
+  background: var(--accent-grad);
+  color: #06111a;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
 }
-
 button:hover {
-  opacity: 0.9;
   transform: translateY(-1px);
+  filter: saturate(1.08);
+}
+button:active {
+  transform: translateY(0);
+}
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
-nav {
+/* Ghost / subtle buttons */
+.btn-ghost {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.07),
+    rgba(255, 255, 255, 0.04)
+  );
+  color: var(--text);
+  box-shadow: none;
+  border: var(--border);
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Mic circular button (if you keep emoji mic) */
+.mic-btn {
+  border-radius: 12px;
+  font-size: 16px;
+  min-width: 44px;
+}
+
+/* ------------------ Right: Feedback ------------------ */
+.feedback-card {
+  padding: 12px;
+}
+.feedback-scroll {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(64vh, 700px);
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.feedback-item {
+  border: var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(58, 134, 255, 0.06),
+    rgba(0, 224, 255, 0.03)
+  );
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+.feedback-item .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #06111a;
+  background: var(--accent-grad);
+}
+.metric-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 520px) {
+  .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.metric {
+  background: rgba(255, 255, 255, 0.05);
+  border: var(--border);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.metric .label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
+.metric .score {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.corrections {
+  margin-top: 6px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  border: var(--border);
+}
+.corrections .row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.corrections .tag {
+  font-size: 12px;
+  color: #06111a;
+  background: var(--warn);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+}
+.corrections .wrong {
+  color: #ff9a9a;
+  text-decoration: line-through;
+}
+.corrections .right {
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* ------------------ Survey ------------------ */
+#survey .grid {
+  gap: 12px;
+}
+label {
+  font-size: 13px;
+  color: var(--muted);
+}
+input[type="text"],
+select {
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.03)
+  );
+  color: var(--text);
+  border: var(--border);
+  outline: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+}
+select {
+  cursor: pointer;
+}
+input[type="text"]:focus,
+select:focus {
+  box-shadow: var(--ring);
+}
+
+.topic-group {
   margin-top: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: var(--border);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
+}
+.group-title {
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.topic-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@media (min-width: 620px) {
+  .topic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 980px) {
+  .topic-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.topic-grid label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: var(--border);
+}
+.topic-grid input[type="checkbox"] {
+  transform: translateY(1px);
+  accent-color: #48b6ff;
+}
+.topic-grid label:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.topic-custom input {
+  flex: 1;
+}
+
+/* Chips container for chosen topics */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chips .chip {
+  background: rgba(58, 134, 255, 0.1);
+  border: 1px solid rgba(58, 134, 255, 0.25);
+}
+
+/* ------------------ Certificate ------------------ */
+#certificate .grid {
+  grid-template-columns: 1fr;
   gap: 10px;
 }
+@media (min-width: 680px) {
+  #certificate .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+#certOutput {
+  min-height: 140px;
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.03)
+    ),
+    radial-gradient(
+      500px 260px at 0% 0%,
+      rgba(58, 134, 255, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      600px 300px at 100% 100%,
+      rgba(0, 224, 255, 0.12),
+      transparent 60%
+    );
+  border: var(--border);
+  border-radius: 14px;
+}
 
+/* ------------------ Accessibility states ------------------ */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: 10px;
+}
+
+/* ------------------ Micro-interactions ------------------ */
+button,
+.topic-grid label,
 .nav-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 8px 14px;
-  border-radius: 8px;
+  will-change: transform, filter;
+}
+
+/* ------------------ Layout specifics for left/right ------------------ */
+.left .card {
+  padding: 12px;
+}
+.right .card {
+  padding: 12px;
+}
+
+/* ------------------ Extra: helper classes your JS can use ------------------ */
+.hidden {
+  display: none !important;
+}
+.fade-in {
+  animation: fade 0.22s ease forwards;
+  opacity: 0;
+}
+@keyframes fade {
+  to {
+    opacity: 1;
+  }
+}
+
+/* ------------------ Mobile polish ------------------ */
+@media (max-width: 480px) {
+  header {
+    padding: 14px;
+  }
+  .voice-preview {
+    min-width: 100%;
+  }
+  .controls {
+    padding: 6px;
+  }
+  button {
+    padding: 10px 12px;
+  }
+  .nav-btn {
+    padding: 8px 12px;
+  }
+}
+
+/* ------------------ Ultra-wide framing ------------------ */
+@media (min-width: 1440px) {
+  .app-container {
+    max-width: 1320px;
+  }
+}
+/* ===============================
+   RESPONSIVE PATCH (append only)
+   =============================== */
+
+/* Fluid type & spacing */
+:root {
+  --gap: clamp(10px, 1.8vw, 14px);
+  --radius: clamp(12px, 2.2vw, 16px);
+  --radius-lg: clamp(14px, 2.6vw, 20px);
+}
+
+/* Header: compress elegantly */
+header {
+  flex-wrap: wrap;
+  gap: clamp(10px, 2vw, 16px);
+  padding: clamp(12px, 2.6vw, 18px);
+}
+header h1 {
+  font-size: clamp(18px, 4.5vw, 28px);
+  line-height: 1.15;
+}
+
+/* Voice select stretches on small screens */
+.header-tools {
+  width: 100%;
+}
+.voice-preview {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.voice-select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Layout: single column first, then split */
+.layout {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+@media (min-width: 1200px) {
+  .layout {
+    grid-template-columns: 1.2fr 0.95fr;
+  }
+}
+
+/* On phones: stack Right under Left */
+.left {
+  order: 1;
+}
+.right {
+  order: 2;
+}
+
+/* Chat height logic: comfy on phones, taller on tablets/desktop */
+.chat-box {
+  /* Use dynamic viewport height to avoid iOS URL bar jumps */
+  min-height: 38dvh;
+  max-height: 52dvh;
+}
+@media (min-width: 600px) {
+  .chat-box {
+    min-height: 46dvh;
+    max-height: 64dvh;
+  }
+}
+
+/* Controls: sticky at bottom of the chat area on small screens */
+.controls {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: clamp(6px, 1.6vw, 10px);
+  gap: clamp(6px, 1.6vw, 10px);
+}
+
+/* Buttons & inputs grow thumb-friendly on phones */
+.controls input[type="text"] {
+  font-size: clamp(14px, 3.8vw, 16px);
+  padding: clamp(9px, 2.6vw, 12px);
+}
+button,
+.btn-ghost,
+.mic-btn {
+  padding: clamp(9px, 2.6vw, 12px) clamp(12px, 3.2vw, 14px);
+  border-radius: clamp(10px, 2.4vw, 12px);
+}
+
+/* Feedback column: matched height & smoother scroll on mobile */
+.feedback-scroll {
+  max-height: 40dvh;
+}
+@media (min-width: 600px) {
+  .feedback-scroll {
+    max-height: min(64vh, 700px);
+  }
+}
+
+/* Topic grids: collapse progressively */
+.topic-grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 520px) {
+  .topic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 960px) {
+  .topic-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Certificate inputs: single column on phones */
+#certificate .grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 680px) {
+  #certificate .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Bottom nav: dock on mobile, respect safe-area */
+nav {
+  position: sticky;
+  bottom: 0;
+  margin-top: clamp(10px, 2.4vw, 16px);
+  padding: clamp(8px, 2.6vw, 10px);
+  inset-inline: auto;
+}
+@supports (padding: max(0px)) {
+  nav {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+.nav-btn {
+  font-size: clamp(13px, 3.4vw, 15px);
+  padding: clamp(8px, 2.6vw, 12px) clamp(10px, 3.2vw, 14px);
+}
+
+/* Cards & panels breathe on tiny screens */
+.card {
+  padding: clamp(10px, 2.6vw, 12px);
+  border-radius: var(--radius);
+}
+
+/* Scrollbar slimmer on narrow screens */
+@media (max-width: 480px) {
+  .chat-box::-webkit-scrollbar,
+  .feedback-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Prevent layout shift from long words / links */
+.chat-box,
+.feedback-scroll,
+.topic-grid,
+.chips {
+  overflow-wrap: anywhere;
+}
+
+/* Tweak HR spacing on tight space */
+.hr {
+  margin: clamp(6px, 1.8vw, 10px) 0;
+}
+/* =========================================
+   FEEDBACK METRICS — RESPONSIVE PATCH
+   ========================================= */
+
+/* 1) Make each feedback item a container so inner layout can adapt */
+.feedback-item {
+  container-type: inline-size;
+}
+
+/* 2) Fluid grid that never squishes numbers */
+.metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* default */
+  gap: clamp(6px, 1.8vw, 10px);
+}
+
+/* Phones in portrait: allow single column if very narrow */
+@media (max-width: 380px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small tablets and up: 3 columns */
+@media (min-width: 560px) {
+  .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Wide screens: 4 columns feels airy */
+@media (min-width: 1080px) {
+  .metric-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* 3) Metric card sizing + typography that scales */
+.metric {
+  padding: clamp(8px, 1.8vw, 12px);
+  min-width: 0; /* prevent overflow in grid cells */
+}
+
+.metric .label {
+  font-size: clamp(11px, 1.9vw, 12px);
+  line-height: 1.15;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Big score that gracefully shrinks on small screens */
+.metric .score {
+  font-size: clamp(16px, 5.2vw, 22px);
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums; /* prevents layout jump */
+  white-space: nowrap;
+}
+
+/* 4) When the container (feedback-item) is tight, reflow label + score inline */
+@container (max-width: 380px) {
+  .metric {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    row-gap: 4px;
+  }
+  .metric .label {
+    order: 1;
+  }
+  .metric .score {
+    order: 2;
+    justify-self: end;
+  }
+}
+
+/* 5) Tighten correction blocks on phones so nothing overflows */
+@media (max-width: 420px) {
+  .corrections {
+    padding: 6px;
+    font-size: 13px;
+  }
+  .corrections .row {
+    flex-wrap: wrap;
+  }
+}
+
+/* 6) Prevent any number or long word from breaking the layout */
+.feedback-scroll,
+.feedback-item,
+.metric,
+.corrections {
+  overflow-wrap: anywhere;
+}
+
+/* 7) Optional: compact badge size on narrow screens */
+@media (max-width: 420px) {
+  .badge {
+    padding: 3px 7px;
+    font-size: 11px;
+  }
+}
+/* =========================================
+   VOICE SELECT — Modern Gradient Redesign
+   ========================================= */
+
+/* Wrapper (glass panel) */
+.voice-preview {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.03)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s ease;
+}
+.voice-preview:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.05)
+  );
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* Select element */
+.voice-select {
+  appearance: none;
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
   color: var(--text);
+  font-weight: 600;
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.02)
+    ),
+    var(--panel);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Gradient border glow when focused */
+.voice-select:focus-visible {
+  outline: none;
+  background: linear-gradient(
+      180deg,
+      rgba(58, 134, 255, 0.18),
+      rgba(0, 224, 255, 0.08)
+    ),
+    var(--panel);
+  box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.25);
+}
+
+/* Dropdown arrow (custom) */
+.voice-preview::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+.voice-preview:hover::after {
+  color: var(--acc2);
+}
+
+/* Dropdown options styling */
+.voice-select option {
+  background: #0e1117;
+  color: var(--text);
+}
+.voice-select option:hover,
+.voice-select option:focus {
+  background: linear-gradient(90deg, var(--acc1) 0%, var(--acc2) 100%);
+  color: #06111a;
+}
+
+/* High contrast dark fallback for some browsers */
+@supports not (backdrop-filter: blur(10px)) {
+  .voice-preview {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+/* =========================================
+   FONT THEME — Times New Roman Elegance
+   ========================================= */
+body,
+input,
+button,
+select,
+textarea {
+  font-family: "Times New Roman", Times, serif !important;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+/* Optional: headings a bit bolder & tighter for sophistication */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Times New Roman", Times, serif !important;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+}
+
+/* Optional: soften UI text tone */
+.text-muted {
+  font-style: italic;
+  color: var(--muted);
+}
+/* =========================================
+   ACTFL LEVEL SELECT — Modern Gradient Redesign
+   ========================================= */
+
+#actflSelect {
+  appearance: none;
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.02)
+    ),
+    var(--panel);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+}
+
+/* Gradient border glow on focus */
+#actflSelect:focus-visible {
+  outline: none;
+  background: linear-gradient(
+      180deg,
+      rgba(58, 134, 255, 0.18),
+      rgba(0, 224, 255, 0.08)
+    ),
+    var(--panel);
+  box-shadow: 0 0 0 3px rgba(0, 224, 255, 0.25);
+}
+
+/* Dropdown arrow indicator (like voice select) */
+#actflSelect::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Wrapper for consistent spacing */
+label[for="actflSelect"] {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Dropdown option styling */
+#actflSelect optgroup {
+  font-style: normal;
+  color: var(--muted-2);
+  background-color: #0e1117;
+}
+
+#actflSelect option {
+  background-color: #0e1117;
+  color: var(--text);
+  padding: 6px 8px;
+}
+
+#actflSelect option:hover,
+#actflSelect option:focus {
+  background: linear-gradient(90deg, var(--acc1) 0%, var(--acc2) 100%);
+  color: #06111a;
+}
+
+/* Hover and glow */
+#actflSelect:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.04)
+  );
+  box-shadow: 0 0 10px rgba(58, 134, 255, 0.2);
+}
+.gate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    1000px 600px at 20% -10%,
+    #0e1c2a 0%,
+    #0b0c0e 40%,
+    #07080a 100%
+  );
+  z-index: 9999;
+}
+.gate.hidden {
+  display: none;
+}
+.gate-card {
+  width: min(92vw, 440px);
+  background: rgba(16, 18, 20, 0.9);
+  border: 1px solid rgba(241, 230, 200, 0.12);
+  border-radius: 16px;
+  padding: 20px;
+  color: #f5f3ef;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+}
+.gate-card h2 {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+.hint {
+  margin: 0 0 16px;
+  color: #b8b1a8;
+  font-size: 14px;
+}
+#gateForm {
+  display: flex;
+  gap: 8px;
+}
+#gateCode {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #2a2d32;
+  background: #101214;
+  color: #f5f3ef;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+#gateCode::placeholder {
+  color: #7f8896;
+}
+.gate-card button {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #b08d57;
+  background: linear-gradient(180deg, #f1e6c8, #b08d57);
+  color: #101214;
+  font-weight: 700;
   cursor: pointer;
 }
+.gate-error {
+  margin: 10px 0 0;
+  min-height: 20px;
+  color: #ff6b6b;
+  font-size: 14px;
+}
+/* =======================
+         MIC RECORDING INDICATOR
+         ======================= */
 
-.nav-btn.active {
-  background: linear-gradient(90deg, var(--acc1), var(--acc2));
-  color: white;
+/* The little "Listening…" pill */
+.mic-indicator {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  background: var(--mic-pill-bg);
+  color: var(--text);
+  border: 1px solid var(--mic-pill-border);
+  backdrop-filter: blur(4px);
+  user-select: none;
+}
+.mic-indicator.show {
+  display: inline-flex;
+}
+.mic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mic-red);
+  box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.6);
+  animation: micPing 1.2s infinite;
+}
+@keyframes micPing {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(255, 59, 48, 0);
+    transform: scale(1.06);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
+    transform: scale(1);
+  }
 }
 
-.plan-output {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px;
-  margin-top: 10px;
-  white-space: pre-wrap;
+/* Red pulse on the mic button when recording */
+.mic-btn.recording {
+  position: relative;
+  outline: none;
+  border-color: rgba(255, 59, 48, 0.35) !important;
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15),
+    0 0 22px 0 rgba(255, 59, 48, 0.35);
+  animation: micGlow 1.25s ease-in-out infinite;
+}
+@keyframes micGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.12),
+      0 0 14px 0 rgba(255, 59, 48, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(255, 59, 48, 0.2),
+      0 0 28px 0 rgba(255, 59, 48, 0.5);
+  }
 }
 
-#certOutput {
-  margin-top: 10px;
+/* Optional: nudge the controls row to make space for the pill nicely */
+.controls {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.controls .mic-indicator {
+  justify-self: start;
+  grid-column: 1 / -1;
+}
+@media (min-width: 700px) {
+  /* On wider screens, place the pill to the left of the mic button */
+  .controls {
+    grid-template-columns: 1fr auto auto auto;
+  }
+  .controls .mic-indicator {
+    grid-column: auto;
+    order: 0;
+  }
+}
+/* Mic recording glow */
+#speakBtn.recording,
+.button.recording,
+.mic-btn.recording {
+  position: relative;
+  box-shadow: 0 0 0 0 rgba(255, 60, 60, 0.55);
+  animation: micPulse 1.2s ease-in-out infinite;
+}
+@keyframes micPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 60, 60, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(255, 60, 60, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 60, 60, 0);
+  }
+}
+
+/* Optional baseline toast styles if you want via CSS (JS already inlined) */
+.toast {
+  font: 500 13px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue";
+}
+.toast-success {
+}
+.toast-error {
+}
+.toast-warning {
+}
+.toast-info {
+}
+.toast-recording {
 }

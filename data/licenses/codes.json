@@ -1,0 +1,15 @@
+{
+  "EHKI-ABCD-1234": {
+    "plan": "pro",
+    "note": "Pilot user 1"
+  },
+  "EHKI-ALPHA-2025": {
+    "plan": "pro",
+    "note": "Paid transfer"
+  },
+  "EHKI-TRIAL-7D": {
+    "plan": "trial",
+    "note": "7-day trial",
+    "expiresAt": "2025-12-31"
+  }
+}
