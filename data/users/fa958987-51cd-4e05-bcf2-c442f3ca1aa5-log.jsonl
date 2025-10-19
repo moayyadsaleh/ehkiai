@@ -160,3 +160,5 @@
 {"t":1760834643721,"role":"assistant","content":"Jessica's a pretty common name. Do you know someone named Jessica, or is it just a name you like?"}
 {"t":1760834702089,"role":"user","content":"why don't they get to eat the cake"}
 {"t":1760834702566,"role":"assistant","content":"That's a curious question. What do you think is the reason they can't eat the cake?"}
+{"t":1760836338829,"role":"user","content":"Please start a structured learning session for Moayyad.\nFocus on these topics: Making friends & socializing.\nProficiency target: ACTFL Intermediate Mid.\nBegin with a short warm-up question."}
+{"t":1760836339821,"role":"assistant","content":"Hey Moayyad, how's it going? What's something social you did last week that you really enjoyed?"}

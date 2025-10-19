@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SpeakUp — AI English Coach</title>
     <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
     <style>
       /* ==== Access Gate + Admin Gate minimal styling (doesn't touch your theme) ==== */
       :root {
@@ -216,13 +221,17 @@
       <div id="gateCard" class="card">
         <div id="gateHeader">
           <div>
-            <h3 id="gateTitle">🔒 Enter Access Code</h3>
+            <h3 id="gateTitle">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i> Enter Access
+              Code
+            </h3>
             <p id="gateSub">
               This code is device-bound. After you unlock once, this device
               won’t be asked again.
             </p>
             <span id="adminOpenLink" class="gate-note"
-              >Admin sign-in (or press Ctrl+Alt+A)</span
+              ><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Admin
+              sign-in (or press Ctrl+Alt+A)</span
             >
           </div>
         </div>
@@ -240,15 +249,16 @@
           <div class="gate-actions">
             <span id="gateMsg" aria-live="polite"></span>
             <button id="pasteBtn" class="gate-btn ghost" type="button">
-              Paste
+              <i class="fa-solid fa-clipboard" aria-hidden="true"></i> Paste
             </button>
             <button id="unlockBtn" class="gate-btn primary" type="button">
+              <i class="fa-solid fa-unlock-keyhole" aria-hidden="true"></i>
               Unlock
             </button>
           </div>
           <div class="gate-note">
-            Tip: You can share codes manually. To revoke this device later, an
-            admin must sign in and reset this device.
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i> Tip: Have
+            a code? Enter it now to unlock and start learning.
           </div>
         </div>
       </div>
@@ -265,7 +275,10 @@
       <div id="adminCard" class="card">
         <div id="adminHeader">
           <div>
-            <h3 id="adminTitle">👮 Admin Sign-in</h3>
+            <h3 id="adminTitle">
+              <i class="fa-solid fa-user-shield" aria-hidden="true"></i> Admin
+              Sign-in
+            </h3>
             <p id="adminSub" class="gate-note">
               Enter the admin password to manage access on this device.
             </p>
@@ -283,38 +296,49 @@
           <div class="admin-actions">
             <span id="adminMsg" aria-live="polite"></span>
             <button id="adminCancelBtn" class="gate-btn ghost" type="button">
-              Cancel
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancel
             </button>
             <button id="adminLoginBtn" class="gate-btn primary" type="button">
+              <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
               Sign in
             </button>
           </div>
           <div class="gate-note">
-            Hint: change the password by updating <code>ADMIN_PASS_SHA256</code>
-            in the HTML file.
+            <i class="fa-solid fa-key" aria-hidden="true"></i> Hint: change the
+            password by updating <code>ADMIN_PASS_SHA256</code> in the HTML
+            file.
           </div>
         </div>
       </div>
     </div>
 
     <!-- Manage access (ADMIN only, appears after admin sign-in) -->
-    <button id="accessMenuBtn" type="button">⋯ Manage access</button>
+    <button id="accessMenuBtn" type="button">
+      <i class="fa-solid fa-sliders" aria-hidden="true"></i> ⋯ Manage access
+    </button>
     <div id="accessMenu" class="card">
-      <p class="label">License on this device</p>
+      <p class="label">
+        <i class="fa-solid fa-id-card" aria-hidden="true"></i> License on this
+        device
+      </p>
       <p id="licenseInfo" class="small">—</p>
       <div class="row">
         <button id="resetLicenseBtn" class="gate-btn" type="button">
-          Reset license
+          <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
+          license
         </button>
         <button id="copyDeviceIdBtn" class="gate-btn" type="button">
-          Copy Device ID
+          <i class="fa-solid fa-copy" aria-hidden="true"></i> Copy Device ID
         </button>
       </div>
       <div class="row" style="margin-top: 8px">
         <button id="adminSignoutBtn" class="gate-btn ghost" type="button">
-          Sign out admin
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Sign
+          out admin
         </button>
-        <button id="closeMenuBtn" class="gate-btn" type="button">Close</button>
+        <button id="closeMenuBtn" class="gate-btn" type="button">
+          <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Close
+        </button>
       </div>
       <p class="small" id="adminStatusMsg" style="margin-top: 6px">—</p>
     </div>
@@ -324,7 +348,10 @@
       <!-- ===== Header ===== -->
       <header>
         <div>
-          <h1>Ehki AI — AI English Coach</h1>
+          <h1>
+            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+            Ehki AI — AI English Coach
+          </h1>
           <p class="text-muted" style="margin: 6px 0 0">
             Practice real conversations, get smart feedback, and earn a
             certificate.
@@ -367,6 +394,7 @@
             ></select>
           </div>
           <div id="voicePersona" class="chip" style="opacity: 0.9">
+            <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
             Instructor:
             <span
               id="voicePersonaName"
@@ -399,13 +427,16 @@
                   placeholder="Say something..."
                   aria-label="Type a message"
                 />
-                <button id="sendBtn" aria-label="Send message">Send</button>
+                <button id="sendBtn" aria-label="Send message">
+                  <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                  Send
+                </button>
                 <button
                   id="speakBtn"
                   class="mic-btn btn-ghost"
                   aria-label="Start/stop voice input"
                 >
-                  🎤
+                  <i class="fa-solid fa-microphone" aria-hidden="true"></i>
                 </button>
               </div>
             </section>
@@ -421,9 +452,16 @@
                     margin-bottom: 6px;
                   "
                 >
-                  <strong>Feedback</strong>
+                  <strong>
+                    <i
+                      class="fa-solid fa-clipboard-check"
+                      aria-hidden="true"
+                    ></i>
+                    Feedback
+                  </strong>
                   <span class="text-muted" style="font-size: 12px"
-                    >Per turn</span
+                    ><i class="fa-regular fa-clock" aria-hidden="true"></i> Per
+                    turn</span
                   >
                 </div>
                 <div class="hr"></div>
@@ -439,7 +477,10 @@
 
         <section id="survey" class="panel">
           <div class="card" style="padding: 14px">
-            <h2 style="margin: 0 0 6px">🎯 Structured Learning Setup</h2>
+            <h2 style="margin: 0 0 6px">
+              <i class="fa-solid fa-bullseye" aria-hidden="true"></i> Structured
+              Learning Setup
+            </h2>
             <p class="text-muted" style="margin: 0 0 12px">
               Tell us your name, pick any topics (or add your own), choose your
               ACTFL level, then start.
@@ -447,7 +488,10 @@
 
             <form id="surveyForm" class="grid" style="display: grid; gap: 12px">
               <!-- Name -->
-              <label for="nameInput">What's your name?</label>
+              <label for="nameInput"
+                ><i class="fa-solid fa-user" aria-hidden="true"></i> What's your
+                name?</label
+              >
               <input
                 type="text"
                 id="nameInput"
@@ -457,11 +501,16 @@
 
               <!-- Topics -->
               <div>
-                <label>Choose topics (multiple allowed)</label>
+                <label
+                  ><i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                  Choose topics (multiple allowed)</label
+                >
 
                 <!-- Popular -->
                 <div class="topic-group">
-                  <div class="group-title">Popular</div>
+                  <div class="group-title">
+                    <i class="fa-solid fa-fire" aria-hidden="true"></i> Popular
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -532,7 +581,10 @@
 
                 <!-- Personal & Daily Life -->
                 <div class="topic-group">
-                  <div class="group-title">Personal & Daily Life</div>
+                  <div class="group-title">
+                    <i class="fa-solid fa-house-user" aria-hidden="true"></i>
+                    Personal & Daily Life
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -628,6 +680,7 @@
                 <!-- Grammar & Tenses (in conversation) -->
                 <div class="topic-group">
                   <div class="group-title">
+                    <i class="fa-solid fa-book-open" aria-hidden="true"></i>
                     Grammar & Tenses (in conversation)
                   </div>
                   <div class="topic-grid">
@@ -724,7 +777,13 @@
 
                 <!-- Places, Community & Culture -->
                 <div class="topic-group">
-                  <div class="group-title">Places, Community & Culture</div>
+                  <div class="group-title">
+                    <i
+                      class="fa-solid fa-earth-americas"
+                      aria-hidden="true"
+                    ></i>
+                    Places, Community & Culture
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -795,7 +854,13 @@
 
                 <!-- Travel -->
                 <div class="topic-group">
-                  <div class="group-title">Travel</div>
+                  <div class="group-title">
+                    <i
+                      class="fa-solid fa-plane-departure"
+                      aria-hidden="true"
+                    ></i>
+                    Travel
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -850,7 +915,10 @@
 
                 <!-- Work & Study -->
                 <div class="topic-group">
-                  <div class="group-title">Work & Study</div>
+                  <div class="group-title">
+                    <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                    Work & Study
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -929,7 +997,10 @@
 
                 <!-- Role Plays / Scenarios -->
                 <div class="topic-group">
-                  <div class="group-title">Role Plays / Scenarios</div>
+                  <div class="group-title">
+                    <i class="fa-solid fa-masks-theater" aria-hidden="true"></i>
+                    Role Plays / Scenarios
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -1024,7 +1095,10 @@
 
                 <!-- Conversation Skills -->
                 <div class="topic-group">
-                  <div class="group-title">Conversation Skills</div>
+                  <div class="group-title">
+                    <i class="fa-solid fa-comments" aria-hidden="true"></i>
+                    Conversation Skills
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -1103,7 +1177,10 @@
 
                 <!-- Learning Skills -->
                 <div class="topic-group">
-                  <div class="group-title">Learning Skills</div>
+                  <div class="group-title">
+                    <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+                    Learning Skills
+                  </div>
                   <div class="topic-grid">
                     <label
                       ><input
@@ -1192,7 +1269,7 @@
                     id="addCustomTopicBtn"
                     class="btn-ghost"
                   >
-                    Add
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i> Add
                   </button>
                 </div>
 
@@ -1206,7 +1283,10 @@
               </div>
 
               <!-- ACTFL Level -->
-              <label for="actflSelect">ACTFL proficiency</label>
+              <label for="actflSelect"
+                ><i class="fa-solid fa-ranking-star" aria-hidden="true"></i>
+                ACTFL proficiency</label
+              >
               <select id="actflSelect">
                 <optgroup label="Novice">
                   <option>Novice Low</option>
@@ -1238,9 +1318,11 @@
                   margin-top: 4px;
                 "
               >
-                <button type="submit">Start</button>
+                <button type="submit">
+                  <i class="fa-solid fa-play" aria-hidden="true"></i> Start
+                </button>
                 <button type="button" class="btn-ghost" id="clearSurveyBtn">
-                  Clear
+                  <i class="fa-solid fa-eraser" aria-hidden="true"></i> Clear
                 </button>
               </div>
             </form>
@@ -1257,7 +1339,10 @@
         <!-- ===== Certificate Panel ===== -->
         <section id="certificate" class="panel">
           <div class="card" style="padding: 14px">
-            <h2 style="margin: 0 0 6px">🏆 Certificate of Completion</h2>
+            <h2 style="margin: 0 0 6px">
+              <i class="fa-solid fa-trophy" aria-hidden="true"></i> Certificate
+              of Completion
+            </h2>
             <p class="text-muted" style="margin: 0 0 12px">
               Once you finish your course, you’ll get a personalized
               certificate.
@@ -1279,8 +1364,16 @@
                 margin-top: 10px;
               "
             >
-              <button id="generateCertBtn">Generate Certificate</button>
-              <button id="downloadCertBtn" class="btn-ghost">Download</button>
+              <button id="generateCertBtn">
+                <i
+                  class="fa-solid fa-wand-magic-sparkles"
+                  aria-hidden="true"
+                ></i>
+                Generate Certificate
+              </button>
+              <button id="downloadCertBtn" class="btn-ghost">
+                <i class="fa-solid fa-download" aria-hidden="true"></i> Download
+              </button>
             </div>
 
             <div
@@ -1295,13 +1388,15 @@
       <!-- ===== Bottom Nav (Tabs) ===== -->
       <nav>
         <button class="nav-btn active" data-target="conversation">
-          💬 Start a Conversation
+          <i class="fa-solid fa-comments" aria-hidden="true"></i> Start a
+          Conversation
         </button>
         <button class="nav-btn" data-target="survey">
-          🧭 Build Your Lesson
+          <i class="fa-solid fa-compass" aria-hidden="true"></i> Build Your
+          Lesson
         </button>
         <button class="nav-btn" data-target="certificate">
-          📜 Certificate
+          <i class="fa-solid fa-certificate" aria-hidden="true"></i> Certificate
         </button>
       </nav>
     </div>
@@ -1315,6 +1410,8 @@
         </div>
       </div>
     </template>
+    <!-- Put near end of <body> -->
+    <canvas id="aurora" class="aurora"></canvas>
 
     <!-- map the bare specifier "three" to the actual CDN URL -->
     <script type="importmap">

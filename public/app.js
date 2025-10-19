@@ -1481,3 +1481,44 @@ document.addEventListener("pointermove", (e) => {
   el.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
   el.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
 });
+(function () {
+  const c = document.getElementById("aurora");
+  if (!c) return;
+  const ctx = c.getContext("2d");
+  let w,
+    h,
+    t = 0,
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+  function resize() {
+    w = window.innerWidth;
+    h = window.innerHeight;
+    c.width = w * dpr;
+    c.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+  const blobs = [
+    { r: 260, x: 0.2, y: 0.2, c: "rgba(58,134,255,.25)" }, // acc1
+    { r: 280, x: 0.8, y: 0.3, c: "rgba(0,224,255,.22)" }, // acc2
+    { r: 220, x: 0.5, y: 0.8, c: "rgba(255,255,255,.10)" }, // white glow
+  ];
+  function draw() {
+    t += 0.006;
+    ctx.clearRect(0, 0, w, h);
+    blobs.forEach((b, i) => {
+      const x = (b.x + Math.sin(t + i) * 0.02) * w;
+      const y = (b.y + Math.cos(t * 1.2 + i) * 0.02) * h;
+      const r = b.r * (1 + Math.sin(t * 0.7 + i) * 0.04);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, b.c);
+      g.addColorStop(1, "transparent");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
