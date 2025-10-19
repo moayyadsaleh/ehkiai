@@ -1474,3 +1474,10 @@ Begin with a short warm-up question.`;
     }
   });
 })();
+document.addEventListener("pointermove", (e) => {
+  const el = e.target.closest(".card");
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  el.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
+  el.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
+});

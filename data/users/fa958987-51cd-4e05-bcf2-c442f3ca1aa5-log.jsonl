@@ -130,3 +130,33 @@
 {"t":1760831901963,"role":"assistant","content":"You're welcome. How was your week so far?"}
 {"t":1760831999441,"role":"user","content":"Please start a structured learning session for Sa.\nFocus on these topics: Academic discussion & seminars, Common mistakes to avoid, Study plans & routines.\nProficiency target: ACTFL Advanced High.\nBegin with a short warm-up question."}
 {"t":1760832000086,"role":"assistant","content":"Let's get started, Sa! \n\nWarm-up question: Can you tell me about your most recent academic discussion or seminar experience? What was the topic and how did you feel about participating?"}
+{"t":1760833310108,"role":"user","content":"Test1"}
+{"t":1760833310692,"role":"assistant","content":"What's a typical Sunday like for you?"}
+{"t":1760833528865,"role":"user","content":"wdWDawdAWD"}
+{"t":1760833529467,"role":"assistant","content":"It looks like you might be in a bit of a distracted state. Let's take a deep breath together and start fresh. How are you today?"}
+{"t":1760833563756,"role":"user","content":"hi how's it going"}
+{"t":1760833564319,"role":"assistant","content":"I'm doing great, thanks for asking. It's nice to chat with you. How about you, how's your day going so far?"}
+{"t":1760833574733,"role":"user","content":"so far"}
+{"t":1760833575210,"role":"assistant","content":"It sounds like everything's going smoothly for you. Do you work, go to school, or have other things you like to do?"}
+{"t":1760833578677,"role":"user","content":"it sounds like everything's going"}
+{"t":1760833579143,"role":"assistant","content":"You repeated what I said, \"it sounds like everything's going.\" That's a good imitation, but let's try to be a bit more creative. Can you tell me something that's new or interesting that happened to you today?"}
+{"t":1760833614759,"role":"user","content":"hey how's it going"}
+{"t":1760833615418,"role":"assistant","content":"Not bad, thanks. It's a nice day outside. I was thinking about going for a walk later. Do you like walking or do you have a different favorite activity?"}
+{"t":1760833616983,"role":"user","content":"hi how's it going"}
+{"t":1760833617392,"role":"assistant","content":"You said \"hi\" – that's a common way to greet someone in English. How do you usually greet your friends or family members when you see them?"}
+{"t":1760833752353,"role":"user","content":"hi how's it going"}
+{"t":1760833752953,"role":"assistant","content":"It's going great, thanks for asking. I just got back from a beautiful weekend outdoors. How about you?"}
+{"t":1760833756342,"role":"user","content":"great"}
+{"t":1760833756735,"role":"assistant","content":"Did you do anything fun over the weekend, or was it a relaxing one?"}
+{"t":1760833911432,"role":"user","content":"Test1"}
+{"t":1760833912003,"role":"assistant","content":"That's a bit short for a conversation, don't you think? What's the first thing that comes to mind when you hear the word \"Test1\"?"}
+{"t":1760834277132,"role":"user","content":"hey how's it going"}
+{"t":1760834277795,"role":"assistant","content":"Hey, it's going great, thanks! I just got back from a walk outside and saw some beautiful fall colors. I love this time of year. How about you, have you noticed anything interesting recently?"}
+{"t":1760834298112,"role":"user","content":"?"}
+{"t":1760834298578,"role":"assistant","content":"You're not saying much, huh? That's okay. Let me try again. Did you do anything fun over the weekend?"}
+{"t":1760834637243,"role":"user","content":"hey how's it going"}
+{"t":1760834637891,"role":"assistant","content":"I'm doing great, thanks for asking. Just got back from a hike over the weekend. The fall colors were amazing here. Have you ever lived in a place with beautiful fall foliage?"}
+{"t":1760834643351,"role":"user","content":"Jessica"}
+{"t":1760834643721,"role":"assistant","content":"Jessica's a pretty common name. Do you know someone named Jessica, or is it just a name you like?"}
+{"t":1760834702089,"role":"user","content":"why don't they get to eat the cake"}
+{"t":1760834702566,"role":"assistant","content":"That's a curious question. What do you think is the reason they can't eat the cake?"}
