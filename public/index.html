@@ -442,6 +442,7 @@
             </section>
 
             <!-- Right: Feedback stream -->
+            <!-- Right: Feedback stream -->
             <aside class="right">
               <div class="feedback-card card">
                 <div
@@ -450,6 +451,8 @@
                     align-items: center;
                     justify-content: space-between;
                     margin-bottom: 6px;
+                    gap: 8px;
+                    flex-wrap: wrap;
                   "
                 >
                   <strong>
@@ -459,11 +462,42 @@
                     ></i>
                     Feedback
                   </strong>
-                  <span class="text-muted" style="font-size: 12px"
-                    ><i class="fa-regular fa-clock" aria-hidden="true"></i> Per
-                    turn</span
-                  >
+
+                  <!-- 👇 Added download buttons -->
+                  <div class="btn-group">
+                    <button
+                      id="downloadConvoBtn"
+                      class="icon-btn"
+                      type="button"
+                      title="Download chat transcript"
+                    >
+                      <i
+                        class="fa-solid fa-file-arrow-down"
+                        aria-hidden="true"
+                      ></i>
+                      Chat (.md)
+                    </button>
+                    <button
+                      id="downloadFeedbackBtn"
+                      class="icon-btn"
+                      type="button"
+                      title="Download feedback CSV"
+                    >
+                      <i class="fa-solid fa-table" aria-hidden="true"></i>
+                      Feedback (.csv)
+                    </button>
+                  </div>
+                  <!-- 👆 End added buttons -->
                 </div>
+
+                <span
+                  class="text-muted"
+                  style="font-size: 12px; display: block; margin: -4px 0 6px"
+                >
+                  <i class="fa-regular fa-clock" aria-hidden="true"></i> Per
+                  turn
+                </span>
+
                 <div class="hr"></div>
                 <div
                   class="feedback-scroll"
@@ -2082,6 +2116,151 @@
           return !!headRoot;
         },
       };
+    </script>
+    <script>
+      (function exportsInit() {
+        const chatBox = document.getElementById("chatBox");
+        const feedbackList = document.getElementById("feedbackList");
+        const btnConvo = document.getElementById("downloadConvoBtn");
+        const btnFeedback = document.getElementById("downloadFeedbackBtn");
+
+        function safeText(el) {
+          return (el?.textContent || "")
+            .replace(/\u00A0/g, " ")
+            .replace(/\s+\n/g, "\n")
+            .replace(/\n\s+/g, "\n")
+            .trim();
+        }
+        function timestampISO() {
+          try {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            return (
+              d.getFullYear() +
+              "-" +
+              pad(d.getMonth() + 1) +
+              "-" +
+              pad(d.getDate()) +
+              "_" +
+              pad(d.getHours()) +
+              "-" +
+              pad(d.getMinutes())
+            );
+          } catch {
+            return "now";
+          }
+        }
+        function downloadFile(filename, mime, content) {
+          const blob = new Blob([content], { type: mime });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        }
+
+        // ---------- CHAT → Markdown (.md) ----------
+        function exportChatMarkdown() {
+          const items = Array.from(chatBox?.querySelectorAll(".msg") || []);
+          if (!items.length) {
+            alert("No chat messages to export yet.");
+            return;
+          }
+          const lines = [];
+          lines.push("# Ehki AI — Chat Transcript");
+          lines.push(`_Exported: ${new Date().toLocaleString()}_`);
+          lines.push("");
+          items.forEach((node, idx) => {
+            if (node.querySelector(".typing")) return; // skip typing dots
+            const cls = node.className || "";
+            const role = cls.includes("user")
+              ? "User"
+              : cls.includes("ai")
+              ? "AI"
+              : "Message";
+            const contentEl = node.querySelector(".content") || node;
+            const text = safeText(contentEl);
+            if (!text) return;
+            lines.push(`**${role}:**`);
+            lines.push(text);
+            if (idx < items.length - 1) lines.push("");
+          });
+          downloadFile(
+            `ehki_chat_${timestampISO()}.md`,
+            "text/markdown;charset=utf-8",
+            lines.join("\n")
+          );
+        }
+
+        // ---------- FEEDBACK → CSV (.csv) ----------
+        function csvEscape(cell) {
+          const s = (cell ?? "").toString();
+          return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        }
+        function exportFeedbackCSV() {
+          const cards = Array.from(feedbackList?.children || []);
+          if (!cards.length) {
+            alert("No feedback to export yet.");
+            return;
+          }
+
+          const headers = [
+            "Turn",
+            "Category",
+            "Tip",
+            "Evidence",
+            "Pronunciation",
+            "Grammar",
+            "Fluency",
+            "Vocabulary",
+            "Comprehension",
+            "Confidence",
+            "Overall",
+            "Raw",
+          ];
+          const rows = [headers];
+
+          cards.forEach((card, i) => {
+            const raw = safeText(card);
+            function pick(label) {
+              const rx = new RegExp(
+                label + "\\s*:\\s*([\\s\\S]*?)(?:\\n[A-Z][A-Za-z ]+\\s*:|$)",
+                "i"
+              );
+              const m = raw.match(rx);
+              return m ? m[1].trim() : "";
+            }
+            const row = [
+              i + 1,
+              pick("Category"),
+              pick("Tip"),
+              pick("Evidence"),
+              pick("Pronunciation"),
+              pick("Grammar"),
+              pick("Fluency"),
+              pick("Vocabulary"),
+              pick("Comprehension"),
+              pick("Confidence"),
+              pick("Overall"),
+              raw,
+            ].map(csvEscape);
+            rows.push(row);
+          });
+
+          const csv = rows.map((r) => r.join(",")).join("\n");
+          downloadFile(
+            `ehki_feedback_${timestampISO()}.csv`,
+            "text/csv;charset=utf-8",
+            csv
+          );
+        }
+
+        btnConvo?.addEventListener("click", exportChatMarkdown);
+        btnFeedback?.addEventListener("click", exportFeedbackCSV);
+      })();
     </script>
 
     <!-- Your app logic -->

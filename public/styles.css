@@ -2165,3 +2165,78 @@ button.border-aurora::before {
     display: none;
   }
 }
+/* === Download Buttons — Fully Responsive & Aligned === */
+.feedback-card > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.feedback-card .btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  flex: 1;
+}
+
+.feedback-card .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--gate-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  min-width: 110px;
+}
+
+.feedback-card .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.feedback-card .icon-btn:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* --- Medium screens --- */
+@media (max-width: 900px) {
+  .feedback-card > div:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .feedback-card .btn-group {
+    justify-content: flex-start;
+  }
+}
+
+/* --- Small screens --- */
+@media (max-width: 560px) {
+  .feedback-card .btn-group {
+    width: 100%;
+  }
+  .feedback-card .icon-btn {
+    flex: 1 1 48%;
+    text-align: center;
+  }
+}
+
+/* --- Very small screens --- */
+@media (max-width: 380px) {
+  .feedback-card .icon-btn {
+    flex: 1 1 100%;
+  }
+}

@@ -1727,3 +1727,565 @@ const micHint = (() => {
   document.body.appendChild(el);
   return el;
 })();
+/* ===========================
+   Courses: Placement + ACTFL Course Plan (30 hours)
+   =========================== */
+
+const ACTFL_TOPICS = {
+  "Novice Low": [
+    "Alphabet & sounds",
+    "Greetings & introductions",
+    "Numbers & time",
+    "Basic questions (who/what/where)",
+    "Daily routine words",
+    "Food basics & ordering simple items",
+    "Family words",
+    "Home & objects",
+    "Shopping phrases",
+    "Simple directions",
+    "Weather & clothes",
+  ],
+  "Novice Mid": [
+    "Describing yourself",
+    "Hobbies & likes/dislikes",
+    "Simple past events",
+    "Making plans (future ‘going to’)",
+    "At a restaurant (menus, requests)",
+    "At a store (prices, sizes)",
+    "Transport basics",
+    "Health symptoms",
+    "School & work basics",
+    "Invitations & replies",
+    "Polite requests & help",
+  ],
+  "Novice High": [
+    "Short stories about past",
+    "Comparisons (bigger than…)",
+    "Preferences & reasons",
+    "Routines with time markers",
+    "Travel basics (airport, hotel)",
+    "Directions with landmarks",
+    "Social introductions & small talk",
+    "Simple problems/solutions",
+    "Phone calls basics",
+    "Describing places",
+  ],
+  "Intermediate Low": [
+    "Narrating in present & past",
+    "Detailing daily life",
+    "Opinions with reasons",
+    "Asking follow-up questions",
+    "Shopping & budgeting scenarios",
+    "Appointments & schedules",
+    "Transport mishaps",
+    "Food & cooking steps",
+    "Health & clinic dialogue",
+    "Workplace small talk",
+  ],
+  "Intermediate Mid": [
+    "Past vs. present contrast",
+    "Storytelling with sequence words",
+    "Travel planning & constraints",
+    "Problem-solving in stores/services",
+    "Comparatives/superlatives in context",
+    "Phrasal verbs (everyday)",
+    "Describing people & places in detail",
+    "Agree/disagree politely",
+    "Explaining processes",
+    "Giving advice (modals)",
+  ],
+  "Intermediate High": [
+    "Narrating across time frames",
+    "Hypotheticals (2nd conditional)",
+    "Present perfect vs. past simple",
+    "Polite negotiation & persuasion",
+    "Work meetings & stand-ups",
+    "Summarizing news/events",
+    "Reported speech intro",
+    "Register & tone shifts",
+    "Handling complaints & resolutions",
+    "Culture & etiquette nuances",
+  ],
+  "Advanced Low": [
+    "Complex opinions & justification",
+    "Cause–effect explanations",
+    "Handling counter-arguments",
+    "Professional emails",
+    "Presentations (structure & signposting)",
+    "Data commentary",
+    "Conditionals 0–3 & mixed (use)",
+    "Nuanced phrasal verbs",
+    "Cross-cultural communication",
+    "Politeness strategies",
+  ],
+  "Advanced Mid": [
+    "Debate and rebuttals",
+    "Synthesis of sources",
+    "Hedging & stance",
+    "Advanced reported speech",
+    "Idioms in context (register)",
+    "Negotiation strategies",
+    "Abstract topics (ethics, policy)",
+    "Academic discussion",
+    "Coherence & cohesion devices",
+    "Pragmatics",
+  ],
+  "Advanced High": [
+    "Extended discourse with control",
+    "Implicit meaning & sarcasm",
+    "Rhetorical moves in presentations",
+    "Dense data storytelling",
+    "Crisis communication",
+    "Leadership persuasion",
+    "Register shifts by audience",
+    "Cultural allusions",
+    "Long-form narration",
+    "Refuting complex claims",
+  ],
+  Superior: [
+    "Sophisticated argumentation",
+    "Policy evaluation & critique",
+    "Cross-domain synthesis",
+    "Subtle pragmatics & irony",
+    "Professional negotiation",
+    "Impromptu speaking",
+    "Counterfactuals",
+    "Ethnographic description",
+    "Cultural critique",
+    "Discourse analysis",
+  ],
+  Distinguished: [
+    "Near-native stylistic range",
+    "Literary/rhetorical devices",
+    "Intertextual references",
+    "Rapid audience design",
+    "Metadiscourse & framing",
+    "Complex satire",
+    "High-register idiom & tone",
+    "Precision at speed",
+    "Specialized jargon",
+    "Oratory polish",
+  ],
+};
+
+// 30-day generator (1 hour/day)
+function buildCoursePlan(
+  actflLevel,
+  startDateISO = new Date().toISOString().slice(0, 10)
+) {
+  const bank = ACTFL_TOPICS[actflLevel] || ACTFL_TOPICS["Intermediate Mid"];
+  const topics = [];
+  for (let i = 0; i < 30; i++) topics.push(bank[i % bank.length]);
+
+  return {
+    actflLevel,
+    startDate: startDateISO,
+    targetMinutesPerDay: 60,
+    lessons: topics.map((topic, idx) => ({
+      day: idx + 1,
+      topic,
+      objective: `Practice ${topic.toLowerCase()} for about 60 minutes.`,
+      doneMinutes: 0,
+    })),
+  };
+}
+
+// Heuristic fallback placement (client-side) if server isn’t available
+function localPlacementHeuristic(samples) {
+  // samples: { oralTranscript, readingAns, listeningAns, lengths etc. }
+  const wc = (s) =>
+    String(s || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+  const oralW = wc(samples.oralTranscript);
+  const hasComplexity =
+    /because|so that|although|even though|however|therefore|which|who|that|used to|have been|has been|would|could|might/i.test(
+      samples.oralTranscript || ""
+    );
+  const readOk = samples.readingScore || 0;
+  const listenOk = samples.listeningScore || 0;
+
+  let score = 0;
+  score += Math.min(30, oralW); // up to 30 for length
+  if (hasComplexity) score += 10; // complexity bonus
+  score += readOk * 10; // 0–20
+  score += listenOk * 10; // 0–20
+
+  // Map rough score → ACTFL
+  if (score < 20) return "Novice Low";
+  if (score < 30) return "Novice Mid";
+  if (score < 40) return "Novice High";
+  if (score < 55) return "Intermediate Low";
+  if (score < 70) return "Intermediate Mid";
+  if (score < 85) return "Intermediate High";
+  if (score < 100) return "Advanced Low";
+  if (score < 115) return "Advanced Mid";
+  if (score < 130) return "Advanced High";
+  return "Superior";
+}
+
+// Listening/Reading mini-bank
+const PLACEMENT_BANK = {
+  oralPrompts: [
+    "Tell me about your typical day and something that recently changed in your routine.",
+    "Describe a memorable trip (real or imagined). What happened before, during, and after?",
+    "Talk about a problem you solved. What were your options, and why did you choose one?",
+  ],
+  reading: {
+    passage:
+      "Community gardens are growing in popularity. They offer fresh produce, chances to meet neighbors, and green spaces in crowded cities. Still, organizers face challenges like securing land, funding tools, and agreeing on rules.",
+    question:
+      "What are two benefits and one challenge mentioned in the passage?",
+    grader: (text) => {
+      const t = (text || "").toLowerCase();
+      const hasBenefit = /fresh|produce|meet|neighbors|green|spaces/.test(t);
+      const hasChallenge = /land|fund|tool|agree|rules|challenge/.test(t);
+      return (hasBenefit ? 1 : 0) + (hasChallenge ? 1 : 0); // 0..2
+    },
+  },
+  listening: {
+    script:
+      "Last summer, I started a weekend language-exchange at a café. At first, only four people came, but soon we had over twenty. We set clear rules: speak your target language for fifteen minutes, then switch. It was loud, but fun, and many friendships formed.",
+    question: "How did the group grow, and what rule did they set?",
+    grader: (text) => {
+      const t = (text || "").toLowerCase();
+      const growth = /four|4.*twenty|20|over twenty|more people/.test(t);
+      const rule = /fifteen|15.*switch|switch.*fifteen|target language/.test(t);
+      return (growth ? 1 : 0) + (rule ? 1 : 0); // 0..2
+    },
+  },
+};
+
+// State
+let _course = null;
+let _placement = null;
+
+// UI refs
+const coursesPanel = document.getElementById("courses");
+const startPlacementBtn = document.getElementById("startPlacementBtn");
+const placeStatus = document.getElementById("placeStatus");
+const placementStep = document.getElementById("placementStep");
+
+const oralBlock = document.getElementById("oralBlock");
+const oralPromptEl = document.getElementById("oralPrompt");
+const oralRecBtn = document.getElementById("oralRecBtn");
+const oralNextBtn = document.getElementById("oralNextBtn");
+
+const readBlock = document.getElementById("readBlock");
+const readPassage = document.getElementById("readPassage");
+const readQuestion = document.getElementById("readQuestion");
+const readAnswer = document.getElementById("readAnswer");
+const readNextBtn = document.getElementById("readNextBtn");
+
+const listenBlock = document.getElementById("listenBlock");
+const listenPlayBtn = document.getElementById("listenPlayBtn");
+const listenQuestion = document.getElementById("listenQuestion");
+const listenAnswer = document.getElementById("listenAnswer");
+const listenNextBtn = document.getElementById("listenNextBtn");
+
+const placeResultCard = document.getElementById("placeResultCard");
+const placeLevelLine = document.getElementById("placeLevelLine");
+const enrollBtn = document.getElementById("enrollBtn");
+
+const courseDash = document.getElementById("courseDash");
+const courseMeta = document.getElementById("courseMeta");
+const courseGrid = document.getElementById("courseGrid");
+const goToConversationBtn = document.getElementById("goToConversationBtn");
+
+// Simple helpers
+function show(el, on = true) {
+  if (!el) return;
+  el.classList.toggle("hidden", !on);
+}
+function setStep(text) {
+  placementStep.textContent = text;
+}
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Placement flow
+let _oralTranscribed = ""; // we’ll use the existing mic; user clicks start/stop
+let _listenPlayed = false;
+
+startPlacementBtn?.addEventListener("click", () => {
+  _placement = { startedAt: Date.now() };
+  placeStatus.textContent = "In progress…";
+  // ORAL
+  oralPromptEl.textContent =
+    PLACEMENT_BANK.oralPrompts[
+      Math.floor(Math.random() * PLACEMENT_BANK.oralPrompts.length)
+    ];
+  show(oralBlock, true);
+  show(readBlock, false);
+  show(listenBlock, false);
+  show(placeResultCard, false);
+  show(courseDash, false);
+  setStep("Step 1/3 · Oral");
+  toast("Placement test started", { type: "success" });
+});
+
+// Use your mic controls: user presses “Start/Stop Recording”
+// We’ll START the mic if it’s off, and STOP it if it’s on — your app already
+// sends on stop. We hook the last user message as the transcript for scoring.
+oralRecBtn?.addEventListener("click", () => {
+  try {
+    if (window.__SU_asrStart && window.__SU_asrStop) {
+      if (isRecording || wantAutoRestart) window.__SU_asrStop();
+      else window.__SU_asrStart();
+      oralNextBtn.disabled = false;
+    }
+  } catch {}
+});
+
+oralNextBtn?.addEventListener("click", () => {
+  // Grab the latest user message from DOM as our “transcript” (best-effort)
+  // (More robust: mirror sendUserMessage to stash last transcript.)
+  const msgs = Array.from(document.querySelectorAll("#chatBox .msg.user"));
+  const last = msgs[msgs.length - 1]?.textContent || "";
+  _oralTranscribed = last.replace(/…\s*$/, "").trim();
+
+  // READING
+  readPassage.textContent = PLACEMENT_BANK.reading.passage;
+  readQuestion.textContent = PLACEMENT_BANK.reading.question;
+  readAnswer.value = "";
+  show(oralBlock, false);
+  show(readBlock, true);
+  setStep("Step 2/3 · Reading");
+});
+
+readNextBtn?.addEventListener("click", () => {
+  const readingScore = PLACEMENT_BANK.reading.grader(readAnswer.value || "");
+  _placement.readingScore = Math.max(0, Math.min(2, readingScore));
+
+  // LISTENING
+  listenQuestion.textContent = PLACEMENT_BANK.listening.question;
+  listenAnswer.value = "";
+  show(readBlock, false);
+  show(listenBlock, true);
+  setStep("Step 3/3 · Listening");
+});
+
+listenPlayBtn?.addEventListener("click", async () => {
+  _listenPlayed = true;
+  // Try your TTS test endpoint first; otherwise use local speech via <audio>
+  const t = PLACEMENT_BANK.listening.script;
+  try {
+    const res = await fetch(
+      `/api/tts-test?voice=${encodeURIComponent(
+        voiceId || ""
+      )}&text=${encodeURIComponent(t)}`
+    );
+    const j = await safeJson(res);
+    const b64 = j?.audioB64 || j?.audio;
+    if (b64) {
+      playBase64Audio(b64);
+      return;
+    }
+  } catch {}
+  // Fallback: Web Speech Synthesis (best-effort, no server)
+  try {
+    const u = new SpeechSynthesisUtterance(t);
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch {}
+});
+
+listenNextBtn?.addEventListener("click", async () => {
+  const listeningScore = PLACEMENT_BANK.listening.grader(
+    listenAnswer.value || ""
+  );
+  _placement.listeningScore = Math.max(0, Math.min(2, listeningScore));
+  _placement.oralTranscript = _oralTranscribed || "";
+
+  // Try server placement first
+  let level = null;
+  try {
+    const r = await fetch("/api/placement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        deviceId,
+        oralTranscript: _placement.oralTranscript,
+        readingAnswer: readAnswer.value || "",
+        listeningAnswer: listenAnswer.value || "",
+        meta: { startedAt: _placement.startedAt, finishedAt: Date.now() },
+      }),
+    });
+    const j = await safeJson(r);
+    if (r.ok && j?.level) level = j.level;
+  } catch {}
+
+  // Fallback heuristic if server not available
+  if (!level) {
+    level = localPlacementHeuristic({
+      oralTranscript: _placement.oralTranscript,
+      readingScore: _placement.readingScore,
+      listeningScore: _placement.listeningScore,
+    });
+  }
+
+  _placement.finalLevel = level;
+  show(listenBlock, false);
+  show(placeResultCard, true);
+  setStep("Done");
+  placeStatus.textContent = "Completed";
+  placeLevelLine.innerHTML = `<strong>Recommended level:</strong> ${level}`;
+});
+
+// Enroll → create a 30-day plan and render dashboard
+enrollBtn?.addEventListener("click", async () => {
+  const level = _placement?.finalLevel || "Intermediate Mid";
+  _course = buildCoursePlan(level, todayISO());
+
+  // Try to persist on server; ignore errors (we keep local copy)
+  try {
+    await fetch("/api/course-enroll", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceId, course: _course }),
+    });
+  } catch {}
+
+  localStorage.setItem("su.course.v1", JSON.stringify(_course));
+  renderCourseDash();
+  toast("Enrolled! Your 30-day plan is ready.", { type: "success" });
+});
+
+// Load course on entry if one exists
+(function loadCourseIfAny() {
+  try {
+    const raw = localStorage.getItem("su.course.v1");
+    if (raw) {
+      _course = JSON.parse(raw);
+      renderCourseDash();
+    }
+  } catch {}
+})();
+
+function renderCourseDash() {
+  if (!_course) {
+    show(courseDash, false);
+    return;
+  }
+  show(placeResultCard, false);
+  show(courseDash, true);
+
+  courseMeta.textContent = `Level: ${_course.actflLevel} · Start: ${_course.startDate} · Target: 60 min/day`;
+
+  // Pull server progress if available to auto-fill minutes
+  (async () => {
+    try {
+      const r = await fetch(
+        `${API_BASE}/api/progress?deviceId=${encodeURIComponent(deviceId)}`
+      );
+      const j = await safeJson(r);
+      if (r.ok && j?.seconds != null) {
+        const totalMin = Math.floor((j.seconds || 0) / 60);
+        // Mark earliest lessons as completed up to totalMin / 60
+        const fullDays = Math.floor(totalMin / 60);
+        _course.lessons.forEach((L, i) => {
+          if (i < fullDays) L.doneMinutes = 60;
+        });
+      }
+    } catch {}
+    // Render tiles
+    courseGrid.innerHTML = "";
+    _course.lessons.forEach((L) => {
+      const done = L.doneMinutes >= 60;
+      const tile = document.createElement("div");
+      tile.className = "card";
+      tile.style.padding = "10px";
+      tile.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <strong>Day ${L.day}</strong>
+          <span class="chip" style="opacity:.9">${
+            done ? "✅ Done" : "⏳ 60 min"
+          }</span>
+        </div>
+        <div class="text-muted" style="font-size:12px; margin-bottom:6px">${
+          _course.actflLevel
+        }</div>
+        <div><em>${L.topic}</em></div>
+        <div class="hr" style="margin:8px 0"></div>
+        <button class="btn-ghost" data-day="${L.day}">
+          <i class="fa-solid fa-book-open"></i> Open lesson
+        </button>
+      `;
+      tile.querySelector("button").addEventListener("click", () => {
+        // Kick off a targeted conversation prompt using your existing chat
+        const kickoff = `Start a ${_course.actflLevel} lesson focused on: ${L.topic}. 
+Please act as a coach. Keep turns short, correct me gently, and include 2–3 targeted drills.`;
+        document.querySelector('[data-target="conversation"]')?.click();
+        sendUserMessage(kickoff);
+      });
+      courseGrid.appendChild(tile);
+    });
+    localStorage.setItem("su.course.v1", JSON.stringify(_course));
+  })();
+}
+
+// Shortcut button
+goToConversationBtn?.addEventListener("click", () => {
+  document.querySelector('[data-target="conversation"]')?.click();
+  // Pick today’s lesson topic
+  if (_course) {
+    const dayIdx = Math.min(
+      29,
+      Math.max(
+        0,
+        Math.floor(
+          (Date.now() - new Date(_course.startDate).getTime()) /
+            (24 * 3600 * 1000)
+        )
+      )
+    );
+    const L = _course.lessons[dayIdx];
+    sendUserMessage(
+      `Start today's ${_course.actflLevel} lesson: ${L.topic}. Use role-plays, feedback, and quick drills (≈60min total).`
+    );
+  }
+});
+
+// Optional: after each feedback card or usage ping, if enrolled, credit minutes toward today
+const _creditMinutes = async (deltaSec = 0) => {
+  if (!_course) return;
+  try {
+    const nowDay = Math.min(
+      30,
+      Math.max(
+        1,
+        Math.floor(
+          (Date.now() - new Date(_course.startDate).getTime()) /
+            (24 * 3600 * 1000)
+        ) + 1
+      )
+    );
+    const L = _course.lessons[nowDay - 1];
+    if (!L) return;
+    L.doneMinutes = Math.min(
+      60,
+      (L.doneMinutes || 0) + Math.floor(deltaSec / 60)
+    );
+    localStorage.setItem("su.course.v1", JSON.stringify(_course));
+  } catch {}
+};
+
+// Hook into your existing usage ping to credit minutes (keeps things in sync)
+const _origStartUsagePing = startUsagePing;
+startUsagePing = function () {
+  if (typeof _origStartUsagePing === "function") _origStartUsagePing();
+  // Patch the existing interval handler by wrapping the fetch call in app.js
+  // We can’t easily intercept it here, so we also credit on visibility events:
+  window.addEventListener("beforeunload", () => _creditMinutes(60)); // small bonus on exit
+};
+
+// Credit after each assistant feedback render (user actively practicing)
+const _origRenderFeedbackCard = renderFeedbackCard;
+renderFeedbackCard = function (...args) {
+  try {
+    _creditMinutes(120);
+  } catch {}
+  return _origRenderFeedbackCard.apply(this, args);
+};
