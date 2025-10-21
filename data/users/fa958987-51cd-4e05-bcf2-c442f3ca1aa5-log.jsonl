@@ -255,3 +255,5 @@
 {"t":1761067747582,"role":"assistant","content":"Hi Sam, nice to meet you. Let's get started with our travel conversation. To warm up, can you tell me about a place you've visited recently or a dream destination you'd like to visit someday?"}
 {"t":1761067823436,"role":"user","content":"Please start a structured learning session for Sam.\nFocus on these topics: Travel, Small talk.\nProficiency target: ACTFL Intermediate Mid.\nBegin with a short warm-up question."}
 {"t":1761067824192,"role":"assistant","content":"Let's begin with a question to get you talking. Imagine you're on a plane and the person next to you asks, \"Where are you headed?\" What would you say?"}
+{"t":1761070310761,"role":"user","content":"hey Libby how's your day going"}
+{"t":1761070311387,"role":"assistant","content":"It's going smashingly, thank you for asking! I just had a lovely cuppa and some biscuits. I was thinking of going for a walk later to get some fresh air. How about you, what's new with you?"}

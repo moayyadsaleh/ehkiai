@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: speakup-ai
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # REQUIRED – set this in Render dashboard (hash of your admin password)
+      - key: ADMIN_PASS_SHA256
+        # value: <paste your SHA-256 hex here>   # (set in dashboard instead)
+        sync: false
+      # RECOMMENDED – used by your minimal JWT
+      - key: ADMIN_JWT_SECRET
+        sync: false
+      # OPTIONAL – if you want to control CORS; "*" is OK if front+back are same origin
+      - key: ORIGIN
+        value: "*"
+      # OPTIONAL – whatever your ./lib/tts and ./lib/ai use:
+      # - key: AZURE_TTS_KEY
+      #   sync: false
+      # - key: AZURE_TTS_REGION
+      #   value: eastus
+      # - key: GROQ_API_KEY
+      #   sync: false
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
