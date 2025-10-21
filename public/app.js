@@ -10,6 +10,11 @@
 let _audioEl = null;
 let _lastObjectURL = null;
 
+/* --- TTS/ASR echo control (added) --- */
+let _isTTSPlaying = false;
+let _resumeASRAfterTTS = false;
+let lastAssistantText = "";
+
 function b64ToBlob(b64, mime = "application/octet-stream") {
   const byteChars = atob(b64);
   const byteNums = new Array(byteChars.length);
@@ -32,6 +37,36 @@ function ensureAudioEl() {
 function playBase64Audio(b64) {
   if (!b64) return;
   const audio = ensureAudioEl();
+
+  // Track ASR (speech recognition) state before playing
+  const wasRecording =
+    typeof isRecording !== "undefined" && typeof wantAutoRestart !== "undefined"
+      ? isRecording || wantAutoRestart
+      : false;
+
+  // --- Stop ASR while TTS is playing ---
+  function stopASRForTTS() {
+    if (wasRecording && typeof stopRecognition === "function") {
+      _resumeASRAfterTTS = true;
+      try {
+        stopRecognition();
+      } catch {}
+    } else {
+      _resumeASRAfterTTS = false; // don’t resume if it wasn’t running
+    }
+  }
+
+  function maybeResumeASR() {
+    if (_resumeASRAfterTTS && typeof startRecognition === "function") {
+      _resumeASRAfterTTS = false;
+      setTimeout(() => {
+        try {
+          startRecognition();
+        } catch {}
+      }, 250);
+    }
+  }
+
   try {
     audio.pause();
     audio.currentTime = 0;
@@ -48,28 +83,40 @@ function playBase64Audio(b64) {
     _lastObjectURL = url;
     audio.src = url;
 
-    // Hand the real <audio> element to the 3D head (creates analyser)
     try {
       window.Head3D?.attach?.(audio);
     } catch {}
 
-    audio.play().catch(() => {
-      // fallback: data URI
-      audio.src = `data:audio/mp3;base64,${b64}`;
-      audio.play().catch(() => {});
-    });
-
+    audio.onplay = () => {
+      _isTTSPlaying = true;
+      stopASRForTTS();
+    };
     audio.onended = audio.onerror = () => {
+      _isTTSPlaying = false;
       if (_lastObjectURL) {
         URL.revokeObjectURL(_lastObjectURL);
         _lastObjectURL = null;
       }
+      maybeResumeASR();
     };
+
+    audio.play().catch(() => {
+      audio.src = `data:audio/mp3;base64,${b64}`;
+      audio.play().catch(() => {});
+    });
   } catch {
     const inline = new Audio(`data:audio/mp3;base64,${b64}`);
     try {
       window.Head3D?.attach?.(inline);
     } catch {}
+    inline.onplay = () => {
+      _isTTSPlaying = true;
+      stopASRForTTS();
+    };
+    inline.onended = inline.onerror = () => {
+      _isTTSPlaying = false;
+      maybeResumeASR();
+    };
     inline.play().catch(() => {});
   }
 }
@@ -249,23 +296,33 @@ function playBase64Audio(b64) {
   let isRecording = false;
   function setRecordingState(on) {
     isRecording = !!on;
-    // Toggle mic button glow if we have one
+
     if (speakBtn) {
+      // Visual state
       speakBtn.classList.toggle("recording", isRecording);
+      // Labeling for sighted users
+      speakBtn.textContent = isRecording
+        ? "🛑 Stop & Send"
+        : "🎙️ Start recording";
+      // A11y
       speakBtn.setAttribute("aria-pressed", isRecording ? "true" : "false");
       speakBtn.setAttribute(
         "aria-label",
-        isRecording ? "Stop recording" : "Start recording"
+        isRecording ? "Stop and send your speech" : "Start recording"
       );
-      speakBtn.title = isRecording ? "Stop recording" : "Start recording";
+      speakBtn.title = isRecording ? "Stop & send" : "Start recording";
     }
-    // Toggle indicator
+
+    // Existing pill
     micIndicator.style.opacity = isRecording ? "1" : "0";
     micIndicator.style.transform = isRecording
       ? "translateY(0)"
       : "translateY(6px)";
-  }
 
+    // NEW: helper chip
+    micHint.style.opacity = isRecording ? "1" : "0";
+    micHint.style.transform = isRecording ? "translateY(0)" : "translateY(6px)";
+  }
   // ===========================
   // Device-bound soft access
   // ===========================
@@ -744,6 +801,7 @@ function playBase64Audio(b64) {
 
       const aiText = (data.text || "").trim();
       if (aiText) {
+        lastAssistantText = aiText; // <-- remember last assistant text (for echo filtering)
         messages.push({ role: "assistant", content: aiText });
         addMsg("ai", aiText);
       }
@@ -795,9 +853,14 @@ function playBase64Audio(b64) {
   // ---- 🎤 NEW/UPDATED: Robust Speech Recognition for long utterances ----
   let recognition = null;
 
+  // 🔧 MIC: Mode & tunables
+  //    "push_to_send"  → you control when to send (stop mic to send). Pauses won't cut you.
+  //    "auto"          → auto-send on short silence (old behavior).
+  const ASR_MODE = "push_to_send"; // 🔧 MIC: default changed to push_to_send
+
   // Tunables
-  const SILENCE_MS = 1200; // how long of no speech until we finalize
-  const MAX_UTTER_MS = 45000; // cut a single utterance at ~45s into a turn
+  const SILENCE_MS = 20000; // 🔧 MIC: large silence window; ignored in push_to_send mode
+  const MAX_UTTER_MS = 240000; // 🔧 MIC: allow up to ~4 minutes per utterance before auto-send (safety)
   const MAX_SESSION_MS = 55000; // Chrome often ends around ~60s — restart a bit earlier
   const RESTART_BACKOFF_MS = 250; // tiny delay to avoid start-onend race
   const MAX_ALTERNATIVES = 1;
@@ -842,6 +905,8 @@ function playBase64Audio(b64) {
           ? "Long utterance captured"
           : reason === "session"
           ? "Resuming mic…"
+          : reason === "manual-stop"
+          ? "Captured speech"
           : "Captured speech",
         { type: "success" }
       );
@@ -870,32 +935,59 @@ function playBase64Audio(b64) {
   }
 
   function scheduleSilenceCheck() {
+    if (ASR_MODE !== "auto") return; // 🔧 MIC: in push_to_send we never auto-finalize on silence
     if (silenceTimer) clearTimeout(silenceTimer);
     silenceTimer = setTimeout(() => {
-      // no new results for a while → finalize
+      // no new results for a while → finalize (auto mode only)
       flushUtterance("silence");
-      // keep recognition going for continuous flow
     }, SILENCE_MS);
   }
 
   function scheduleUtterCutoff() {
     if (utterTimer) clearTimeout(utterTimer);
-    utterTimer = setTimeout(() => {
-      flushUtterance("timeout");
-    }, MAX_UTTER_MS);
+    if (ASR_MODE === "auto") {
+      utterTimer = setTimeout(() => {
+        flushUtterance("timeout");
+      }, MAX_UTTER_MS);
+    } else {
+      // 🔧 MIC: in push_to_send, we *still* guard with a very long cutoff for safety
+      utterTimer = setTimeout(() => {
+        flushUtterance("timeout");
+      }, MAX_UTTER_MS);
+    }
   }
 
   function scheduleSessionRestart() {
     if (sessionTimer) clearTimeout(sessionTimer);
     sessionTimer = setTimeout(() => {
-      // Browser will end soon anyway; finalize current and restart
-      flushUtterance("session");
+      // Browser will end soon anyway; in push_to_send we DO NOT flush — we preserve buffers and quietly restart
       if (recognition) {
         try {
           recognition.stop();
         } catch {}
       }
     }, MAX_SESSION_MS);
+  }
+
+  /* --- Echo text detection helpers (added) --- */
+  function _norm(s) {
+    return String(s || "")
+      .toLowerCase()
+      .replace(/[\p{P}\p{S}]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  function looksLikeEcho(candidate, reference) {
+    const a = _norm(candidate);
+    const b = _norm(reference);
+    if (!a || !b) return false;
+    if (a.length < 20) return false;
+    if (b.includes(a) || a.includes(b)) return true;
+    const aw = new Set(a.split(" "));
+    const bw = b.split(" ");
+    const overlap = bw.filter((w) => aw.has(w)).length;
+    const ratio = overlap / Math.max(aw.size, bw.length);
+    return ratio >= 0.7;
   }
 
   function initSpeechRecognition() {
@@ -914,17 +1006,29 @@ function playBase64Audio(b64) {
     recognition.maxAlternatives = MAX_ALTERNATIVES;
 
     recognition.onstart = () => {
+      // If TTS is speaking, do not keep ASR on
+      if (_isTTSPlaying) {
+        try {
+          recognition.stop();
+        } catch {}
+        return;
+      }
       setRecordingState(true);
       wantAutoRestart = true;
       lastResultAt = Date.now();
       scheduleSilenceCheck();
       scheduleUtterCutoff();
       scheduleSessionRestart();
-      toast("Mic is recording…", {
-        type: "recording",
-        icon: "🎙️",
-        timeout: 1000,
-      });
+      toast(
+        ASR_MODE === "push_to_send"
+          ? "Mic is recording… (stop to send)"
+          : "Mic is recording…",
+        {
+          type: "recording",
+          icon: "🎙️",
+          timeout: 1200,
+        }
+      );
     };
 
     recognition.onresult = (e) => {
@@ -938,12 +1042,28 @@ function playBase64Audio(b64) {
         if (!txt) continue;
         if (res.isFinal) {
           finalBuffer += (finalBuffer ? " " : "") + txt.trim();
-          interimBuffer = "";
+          newInterim = ""; // reset interim when final arrives
         } else {
           newInterim += (newInterim ? " " : "") + txt.trim();
         }
       }
-      interimBuffer = newInterim; // keep only latest interim chunk
+      interimBuffer = newInterim;
+
+      // --- Drop captured text if it's our own TTS or an echo of last assistant reply
+      const candidate = [finalBuffer, interimBuffer]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      if (_isTTSPlaying || looksLikeEcho(candidate, lastAssistantText)) {
+        interimBuffer = "";
+        finalBuffer = "";
+        if (showingInterimGhost) {
+          showingInterimGhost.remove();
+          showingInterimGhost = null;
+        }
+        return;
+      }
+
       showInterimGhost([finalBuffer, interimBuffer].filter(Boolean).join(" "));
     };
 
@@ -963,15 +1083,13 @@ function playBase64Audio(b64) {
     };
 
     recognition.onend = () => {
-      // finalize any buffered words before restart
-      if ((finalBuffer || interimBuffer) && Date.now() - lastResultAt > 100) {
-        flushUtterance("silence");
-      }
+      // 🔧 MIC: Do NOT auto-send on Chrome session cut if we intend to keep recording.
+      // If user stopped the mic (wantAutoRestart=false), finalize and send.
       clearTimers();
       setRecordingState(false);
 
-      // If user still wants it on, auto-restart to bypass Chrome’s cap
       if (wantAutoRestart) {
+        // Preserve buffers; quiet restart to survive session cap
         setTimeout(() => {
           try {
             startRecognition(); // gentle restart
@@ -983,7 +1101,12 @@ function playBase64Audio(b64) {
           }
         }, RESTART_BACKOFF_MS);
       } else {
-        toast("Mic stopped", { type: "info", icon: "🛑" });
+        // User manually stopped → finalize and send
+        if (finalBuffer || interimBuffer) {
+          flushUtterance("manual-stop"); // 🔧 MIC: only send when user stops
+        } else {
+          toast("Mic stopped", { type: "info", icon: "🛑" });
+        }
       }
     };
   }
@@ -1006,8 +1129,12 @@ function playBase64Audio(b64) {
     try {
       recognition?.stop();
     } catch {}
-    // onend will fire and clean up + finalize if needed
+    // onend will fire and *then* flush (manual-stop)
   }
+
+  // Expose minimal ASR controls for TTS to pause/resume (added)
+  window.__SU_asrStart = startRecognition;
+  window.__SU_asrStop = stopRecognition;
 
   function toggleMic() {
     if (!recognition) initSpeechRecognition();
@@ -1015,6 +1142,8 @@ function playBase64Audio(b64) {
     if (isRecording || wantAutoRestart) {
       stopRecognition();
     } else {
+      // If we still have buffered interim from previous session, keep it;
+      // next results will continue appending until you stop to send.
       startRecognition();
     }
   }
@@ -1243,6 +1372,20 @@ Begin with a short warm-up question.`;
       });
     }
   });
+  // One-time tip for push-to-send
+  try {
+    if (!localStorage.getItem("su_push_to_send_tip")) {
+      toast(
+        "Mic works like push-to-send: click to start, click again to send.",
+        {
+          type: "info",
+          icon: "🎧",
+          timeout: 4200,
+        }
+      );
+      localStorage.setItem("su_push_to_send_tip", "1");
+    }
+  } catch {}
 
   // ===========================
   // Usage heartbeat (accumulate practice time server-side)
@@ -1474,6 +1617,7 @@ Begin with a short warm-up question.`;
     }
   });
 })();
+
 document.addEventListener("pointermove", (e) => {
   const el = e.target.closest(".card");
   if (!el) return;
@@ -1481,6 +1625,7 @@ document.addEventListener("pointermove", (e) => {
   el.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
   el.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
 });
+
 (function () {
   const c = document.getElementById("aurora");
   if (!c) return;
@@ -1521,4 +1666,31 @@ document.addEventListener("pointermove", (e) => {
     requestAnimationFrame(draw);
   }
   draw();
+})();
+// Helper hint next to mic
+const micHint = (() => {
+  const el = document.createElement("div");
+  el.id = "micHint";
+  Object.assign(el.style, {
+    position: "fixed",
+    left: "16px",
+    bottom: "56px",
+    padding: "6px 10px",
+    fontSize: "12px",
+    borderRadius: "8px",
+    border: "1px solid rgba(255,255,255,.14)",
+    background:
+      "linear-gradient(180deg, rgba(24,28,36,.9), rgba(14,16,22,.95))",
+    color: "#ecf1ff",
+    boxShadow: "0 6px 18px rgba(0,0,0,.45)",
+    backdropFilter: "blur(10px)",
+    zIndex: "2147483647",
+    opacity: "0",
+    transform: "translateY(6px)",
+    pointerEvents: "none",
+    transition: "opacity .15s ease, transform .15s ease",
+  });
+  el.textContent = "Press mic again to send";
+  document.body.appendChild(el);
+  return el;
 })();
