@@ -257,3 +257,26 @@
 {"t":1761067824192,"role":"assistant","content":"Let's begin with a question to get you talking. Imagine you're on a plane and the person next to you asks, \"Where are you headed?\" What would you say?"}
 {"t":1761070310761,"role":"user","content":"hey Libby how's your day going"}
 {"t":1761070311387,"role":"assistant","content":"It's going smashingly, thank you for asking! I just had a lovely cuppa and some biscuits. I was thinking of going for a walk later to get some fresh air. How about you, what's new with you?"}
+{"t":1761076462492,"role":"user","content":"hey how's it going"}
+{"t":1761076463164,"role":"assistant","content":"It's going great, thanks for asking. Just had a lovely cup of tea and I'm feeling quite chatty today. Did you do anything exciting over the weekend?"}
+{"t":1761086537720,"role":"user","content":"this is Aria how was your day going"}
+{"t":1761086538509,"role":"assistant","content":"Hi Aria, nice to talk to you. My day was pretty good. I had a quiet morning, just got some work done. Then I met a friend for coffee, and we talked about our weekend plans. How about you, what's new with you?"}
+{"t":1761086594646,"role":"user","content":"hey Sarah how's your day going"}
+{"t":1761086595262,"role":"assistant","content":"It's great, thanks for asking. I had a nice morning walk, and then I met a friend for coffee. We talked about our weekends. Now I'm here, chatting with you. How about you, how's your day going so far?"}
+{"t":1761086630552,"role":"user","content":"hey how's it going"}
+{"t":1761086631049,"role":"assistant","content":"I'm doing great, thanks for asking! It's a beautiful day outside, and I love the conversation we're having. So, what's new with you?"}
+{"t":1761086648825,"role":"user","content":"honestly nothing new with me I'm just trying to test this app and see if there is anything to fix"}
+{"t":1761086654326,"role":"user","content":"honestly nothing new with me I'm just trying to test this app and see if there is anything to fix"}
+{"t":1761086655483,"role":"assistant","content":"Well, I'm glad I could provide some conversation to help you test it. It sounds like you're looking for a way to get feedback on your English skills. That's totally awesome, because practice is where the magic happens. What's been your experience with English so far?"}
+{"t":1761087250573,"role":"user","content":"hey how's it going"}
+{"t":1761087251032,"role":"assistant","content":"It's going great, thanks for asking. How about you? What's new with you?"}
+{"t":1761087263924,"role":"user","content":"I am just sick I'm laying on the couch now and everything is hurting"}
+{"t":1761087264551,"role":"assistant","content":"Sorry to hear that you're not feeling well. Hopefully, you're taking care of yourself and getting some rest. Do you think it's something you ate or maybe just a cold or flu?"}
+{"t":1761087302964,"role":"user","content":"it might be a cold or flu I'm type of thing but it was terrible I was like feeling so bad and I'm just tired and couldn't do things and I was just super exhausted but now I'm feeling a little better"}
+{"t":1761087303683,"role":"assistant","content":"It sounds like you were really struggling. But it's good to hear that you're starting to feel a little better. Sometimes when we're feeling down, just resting and taking it easy can help us get back on our feet. Are you staying hydrated with water and tea or something?"}
+{"t":1761087325575,"role":"user","content":"hey guy how was your day going"}
+{"t":1761087326477,"role":"assistant","content":"It was a pretty good day, thanks for asking. I had a session with a client, had some lunch, and then spent some time catching up on work. Nothing too exciting, but it was productive. I did have a nice walk outside in the morning, though. How about you, now that you're feeling a little better?"}
+{"t":1761087393529,"role":"user","content":"Please start a structured learning session for Moayyad.\nFocus on these topics: Small talk.\nProficiency target: ACTFL Intermediate Mid.\nBegin with a short warm-up question."}
+{"t":1761087394167,"role":"assistant","content":"Hey Moayyad, great to meet you! Let's get started. Before we dive into small talk, can you tell me, what's usually the first thing you do when you meet someone new, and do you find it easy or hard to start a conversation?"}
+{"t":1761087443147,"role":"user","content":"hey guy thank you for helping me out the first thing I do when I meet someone is up to greet them and probably try to get to know them a little bit and like chitty chat with them and that's it that's what I would do is just like some kind of small small chat"}
+{"t":1761087443808,"role":"assistant","content":"So you're a natural at making a good first impression. Great start. Now, can you think of a common topic that people often talk about in small talk situations, like when meeting a neighbor or a coworker for the first time? What's something you'd usually talk about?"}

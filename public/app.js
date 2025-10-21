@@ -850,30 +850,34 @@ function playBase64Audio(b64) {
     if (e.key === "Enter") sendUserMessage(userInput.value);
   });
 
-  // ---- 🎤 NEW/UPDATED: Robust Speech Recognition for long utterances ----
+  // ---- 🎤 NEW/UPDATED: Bulletproof Speech Recognition for repeated use ----
   let recognition = null;
 
-  // 🔧 MIC: Mode & tunables
-  //    "push_to_send"  → you control when to send (stop mic to send). Pauses won't cut you.
-  //    "auto"          → auto-send on short silence (old behavior).
-  const ASR_MODE = "push_to_send"; // 🔧 MIC: default changed to push_to_send
+  // MIC modes (unchanged idea)
+  const ASR_MODE = "push_to_send"; // "auto" also supported
 
-  // Tunables
-  const SILENCE_MS = 20000; // 🔧 MIC: large silence window; ignored in push_to_send mode
-  const MAX_UTTER_MS = 240000; // 🔧 MIC: allow up to ~4 minutes per utterance before auto-send (safety)
-  const MAX_SESSION_MS = 55000; // Chrome often ends around ~60s — restart a bit earlier
-  const RESTART_BACKOFF_MS = 250; // tiny delay to avoid start-onend race
+  // Tunables (kept same)
+  const SILENCE_MS = 20000;
+  const MAX_UTTER_MS = 240000;
+  const MAX_SESSION_MS = 55000;
+  const RESTART_BACKOFF_MS = 250;
   const MAX_ALTERNATIVES = 1;
 
-  // Buffers/state
-  let interimBuffer = ""; // live interim
-  let finalBuffer = ""; // accumulated finalized text for the current utterance
+  // Buffers/state (kept)
+  let interimBuffer = "";
+  let finalBuffer = "";
   let silenceTimer = null;
   let utterTimer = null;
   let sessionTimer = null;
   let lastResultAt = 0;
-  let wantAutoRestart = false; // keep recognition alive across onend
-  let showingInterimGhost = null; // ephemeral UI for interim text
+  let wantAutoRestart = false;
+  let showingInterimGhost = null;
+
+  // NEW: robust guards
+  let _manualStopPending = false; // set when user presses Stop
+  let _suppressAutoResumeOnce = false; // used around voice preview
+  let _prevWasRecordingForTTS = false; // TTS pause/resume memory
+  let REC_SEQ = 0; // increment per recognizer instance
 
   function clearTimers() {
     if (silenceTimer) {
@@ -905,8 +909,6 @@ function playBase64Audio(b64) {
           ? "Long utterance captured"
           : reason === "session"
           ? "Resuming mic…"
-          : reason === "manual-stop"
-          ? "Captured speech"
           : "Captured speech",
         { type: "success" }
       );
@@ -935,32 +937,19 @@ function playBase64Audio(b64) {
   }
 
   function scheduleSilenceCheck() {
-    if (ASR_MODE !== "auto") return; // 🔧 MIC: in push_to_send we never auto-finalize on silence
+    if (ASR_MODE !== "auto") return;
     if (silenceTimer) clearTimeout(silenceTimer);
-    silenceTimer = setTimeout(() => {
-      // no new results for a while → finalize (auto mode only)
-      flushUtterance("silence");
-    }, SILENCE_MS);
+    silenceTimer = setTimeout(() => flushUtterance("silence"), SILENCE_MS);
   }
 
   function scheduleUtterCutoff() {
     if (utterTimer) clearTimeout(utterTimer);
-    if (ASR_MODE === "auto") {
-      utterTimer = setTimeout(() => {
-        flushUtterance("timeout");
-      }, MAX_UTTER_MS);
-    } else {
-      // 🔧 MIC: in push_to_send, we *still* guard with a very long cutoff for safety
-      utterTimer = setTimeout(() => {
-        flushUtterance("timeout");
-      }, MAX_UTTER_MS);
-    }
+    utterTimer = setTimeout(() => flushUtterance("timeout"), MAX_UTTER_MS);
   }
 
   function scheduleSessionRestart() {
     if (sessionTimer) clearTimeout(sessionTimer);
     sessionTimer = setTimeout(() => {
-      // Browser will end soon anyway; in push_to_send we DO NOT flush — we preserve buffers and quietly restart
       if (recognition) {
         try {
           recognition.stop();
@@ -969,7 +958,7 @@ function playBase64Audio(b64) {
     }, MAX_SESSION_MS);
   }
 
-  /* --- Echo text detection helpers (added) --- */
+  /* --- Echo text detection helpers (unchanged logic) --- */
   function _norm(s) {
     return String(s || "")
       .toLowerCase()
@@ -978,8 +967,8 @@ function playBase64Audio(b64) {
       .trim();
   }
   function looksLikeEcho(candidate, reference) {
-    const a = _norm(candidate);
-    const b = _norm(reference);
+    const a = _norm(candidate),
+      b = _norm(reference);
     if (!a || !b) return false;
     if (a.length < 20) return false;
     if (b.includes(a) || a.includes(b)) return true;
@@ -990,7 +979,31 @@ function playBase64Audio(b64) {
     return ratio >= 0.7;
   }
 
-  function initSpeechRecognition() {
+  // NEW: fully tear down any old recognizer and ignore its late events
+  function killRecognition() {
+    try {
+      if (recognition) {
+        recognition.onstart =
+          recognition.onresult =
+          recognition.onerror =
+          recognition.onend =
+            null;
+      }
+    } catch {}
+    try {
+      recognition?.stop?.();
+    } catch {}
+    try {
+      recognition?.abort?.();
+    } catch {}
+    recognition = null;
+    wantAutoRestart = false;
+    clearTimers();
+    setRecordingState(false);
+  }
+
+  // Build a fresh instance, attach handlers that ignore stale events
+  function initSpeechRecognition(forceNew = false) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
       toast("Speech recognition not supported in this browser", {
@@ -999,14 +1012,19 @@ function playBase64Audio(b64) {
       });
       return;
     }
+    if (recognition && !forceNew) return;
+
+    if (forceNew && recognition) killRecognition();
+
     recognition = new SR();
+    const handle = ++REC_SEQ; // snapshot: only this handle is valid
     recognition.lang = "en-US";
-    recognition.interimResults = true; // ✅ allow partials
-    recognition.continuous = true; // ✅ keep engine open
+    recognition.interimResults = true;
+    recognition.continuous = true;
     recognition.maxAlternatives = MAX_ALTERNATIVES;
 
     recognition.onstart = () => {
-      // If TTS is speaking, do not keep ASR on
+      if (handle !== REC_SEQ) return; // ignore stale instance
       if (_isTTSPlaying) {
         try {
           recognition.stop();
@@ -1023,17 +1041,14 @@ function playBase64Audio(b64) {
         ASR_MODE === "push_to_send"
           ? "Mic is recording… (stop to send)"
           : "Mic is recording…",
-        {
-          type: "recording",
-          icon: "🎙️",
-          timeout: 1200,
-        }
+        { type: "recording", icon: "🎙️", timeout: 1200 }
       );
     };
 
     recognition.onresult = (e) => {
+      if (handle !== REC_SEQ) return; // ignore stale instance
       lastResultAt = Date.now();
-      scheduleSilenceCheck(); // bump silence window on every result
+      scheduleSilenceCheck();
 
       let newInterim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -1042,14 +1057,13 @@ function playBase64Audio(b64) {
         if (!txt) continue;
         if (res.isFinal) {
           finalBuffer += (finalBuffer ? " " : "") + txt.trim();
-          newInterim = ""; // reset interim when final arrives
+          newInterim = "";
         } else {
           newInterim += (newInterim ? " " : "") + txt.trim();
         }
       }
       interimBuffer = newInterim;
 
-      // --- Drop captured text if it's our own TTS or an echo of last assistant reply
       const candidate = [finalBuffer, interimBuffer]
         .filter(Boolean)
         .join(" ")
@@ -1063,12 +1077,11 @@ function playBase64Audio(b64) {
         }
         return;
       }
-
       showInterimGhost([finalBuffer, interimBuffer].filter(Boolean).join(" "));
     };
 
     recognition.onerror = (ev) => {
-      // Common: "no-speech", "audio-capture", "not-allowed", "aborted", "network"
+      if (handle !== REC_SEQ) return;
       const m =
         ev.error === "no-speech"
           ? "No speech detected"
@@ -1077,22 +1090,22 @@ function playBase64Audio(b64) {
           : ev.error === "not-allowed"
           ? "Mic permission denied"
           : ev.error === "aborted"
-          ? null // we'll silently ignore abort during restart
+          ? null
           : `Mic error: ${ev.error || "unknown"}`;
       if (m) toast(m, { type: "error", timeout: 3200 });
     };
 
     recognition.onend = () => {
-      // 🔧 MIC: Do NOT auto-send on Chrome session cut if we intend to keep recording.
-      // If user stopped the mic (wantAutoRestart=false), finalize and send.
+      if (handle !== REC_SEQ) return; // stale instance ended
       clearTimers();
       setRecordingState(false);
 
       if (wantAutoRestart) {
-        // Preserve buffers; quiet restart to survive session cap
         setTimeout(() => {
+          // Guard: only restart if this is still the current instance
+          if (handle !== REC_SEQ) return;
           try {
-            startRecognition(); // gentle restart
+            startRecognition(/*forceFresh*/ false);
           } catch (e) {
             toast(`Mic restart failed: ${e.message}`, {
               type: "error",
@@ -1101,59 +1114,79 @@ function playBase64Audio(b64) {
           }
         }, RESTART_BACKOFF_MS);
       } else {
-        // User manually stopped → finalize and send
         if (finalBuffer || interimBuffer) {
-          flushUtterance("manual-stop"); // 🔧 MIC: only send when user stops
+          flushUtterance("manual-stop");
         } else {
           toast("Mic stopped", { type: "info", icon: "🛑" });
         }
+        _manualStopPending = false;
       }
     };
   }
 
-  function startRecognition() {
-    if (!recognition) initSpeechRecognition();
+  function startRecognition(forceFresh = true) {
+    // Always create a fresh instance after a full cycle—prevents "stuck open" on 2nd run
+    initSpeechRecognition(forceFresh);
     if (!recognition) return;
     try {
+      _manualStopPending = false;
       setRecordingState(true);
       wantAutoRestart = true;
       recognition.start();
     } catch (e) {
-      // start can throw if already started; ignore benign errors
+      // Ignore benign "already started" errors
     }
   }
 
   function stopRecognition() {
+    _manualStopPending = true;
+    _resumeASRAfterTTS = false; // never auto-resume after explicit stop
     wantAutoRestart = false;
     clearTimers();
+
+    // Ask it to stop normally first
     try {
-      recognition?.stop();
+      recognition?.stop?.();
     } catch {}
-    // onend will fire and *then* flush (manual-stop)
+
+    // If onend gets swallowed, nuke it: abort → flush → rebuild cleanly
+    setTimeout(() => {
+      if (!_manualStopPending) return; // onend already handled
+      try {
+        recognition?.abort?.();
+      } catch {}
+      setTimeout(() => {
+        if (_manualStopPending) {
+          // Hard kill and finalize
+          killRecognition();
+          flushUtterance("manual-stop");
+          _manualStopPending = false;
+        }
+      }, 250);
+    }, 400);
   }
 
-  // Expose minimal ASR controls for TTS to pause/resume (added)
+  // Expose minimal ASR controls for TTS pause/resume
   window.__SU_asrStart = startRecognition;
   window.__SU_asrStop = stopRecognition;
 
   function toggleMic() {
-    if (!recognition) initSpeechRecognition();
+    if (!recognition) initSpeechRecognition(true);
     if (!recognition) return;
+
     if (isRecording || wantAutoRestart) {
       stopRecognition();
     } else {
-      // If we still have buffered interim from previous session, keep it;
-      // next results will continue appending until you stop to send.
-      startRecognition();
+      // If buffer has leftovers, we keep appending until you press stop to send
+      startRecognition(true);
     }
   }
 
   // Click mic button to toggle
   speakBtn.addEventListener("click", toggleMic);
 
-  // Optional: quick hotkeys — M toggles mic; ESC stops
+  // Optional: hotkeys — M toggles mic; ESC stops
   window.addEventListener("keydown", (e) => {
-    // Ignore when typing in inputs/textareas
     if (/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName)) return;
     if (e.key.toLowerCase() === "m") {
       e.preventDefault();
