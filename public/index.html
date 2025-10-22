@@ -407,6 +407,232 @@
 
       <!-- ===== Main Area (Panels) ===== -->
       <main id="main-area">
+        <!-- ===== Class Panel (Join/Resume a 30-hour course) ===== -->
+        <section id="class" class="panel">
+          <div class="card" style="padding: 14px">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                flex-wrap: wrap;
+              "
+            >
+              <div>
+                <h2 style="margin: 0 0 6px">
+                  <i class="fa-solid fa-people-line" aria-hidden="true"></i>
+                  Join a Class (30 hours)
+                </h2>
+                <p class="text-muted" style="margin: 0">
+                  Take a quick placement test, get your ACTFL level, and follow
+                  a structured 30-day plan (1 hour/day).
+                </p>
+              </div>
+              <div class="btn-group" style="display: flex; gap: 8px">
+                <button id="classJoinBtn" type="button">
+                  <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Join
+                  Class
+                </button>
+                <button id="classResumeBtn" type="button" class="btn-ghost">
+                  <i class="fa-solid fa-forward-step" aria-hidden="true"></i>
+                  Continue
+                </button>
+                <button id="classResetBtn" type="button" class="btn-ghost">
+                  <i class="fa-solid fa-rotate" aria-hidden="true"></i> Reset
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="classMeta"
+              class="card"
+              style="margin-top: 12px; padding: 12px"
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                "
+              >
+                <div id="classLevelBadge" class="chip">
+                  <i class="fa-solid fa-ranking-star" aria-hidden="true"></i>
+                  Level: —
+                </div>
+                <div id="classProgressBadge" class="chip">
+                  <i class="fa-solid fa-bars-progress" aria-hidden="true"></i>
+                  Progress: 0 / 30
+                </div>
+                <div id="classTodayBadge" class="chip">
+                  <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
+                  Next: —
+                </div>
+              </div>
+              <div
+                style="
+                  height: 10px;
+                  border-radius: 8px;
+                  background: #0f141b;
+                  border: 1px solid rgba(255, 255, 255, 0.08);
+                  margin-top: 10px;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  id="classProgressBar"
+                  style="
+                    height: 100%;
+                    width: 0%;
+                    background: linear-gradient(180deg, #2d9cff, #1283e6);
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <!-- Syllabus / session list -->
+            <div
+              id="classSyllabus"
+              class="card"
+              style="margin-top: 12px; padding: 12px"
+            >
+              <h3 style="margin: 0 0 8px">
+                <i class="fa-solid fa-list-ol" aria-hidden="true"></i>
+                Your 30-Day Plan
+              </h3>
+              <div
+                id="classSessions"
+                class="grid"
+                style="display: grid; gap: 8px"
+              ></div>
+            </div>
+          </div>
+
+          <!-- ===== Placement Modal ===== -->
+          <dialog
+            id="placementDlg"
+            style="
+              max-width: 760px;
+              width: 92vw;
+              border: none;
+              border-radius: 16px;
+              padding: 0;
+              background: linear-gradient(180deg, #171c24, #11151c);
+              color: #eaf1ff;
+            "
+          >
+            <form method="dialog">
+              <div
+                style="
+                  padding: 16px 16px 8px;
+                  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 10px;
+                "
+              >
+                <h3 style="margin: 0; font-size: 18px">
+                  <i
+                    class="fa-solid fa-clipboard-question"
+                    aria-hidden="true"
+                  ></i>
+                  Placement Test (≈5 min)
+                </h3>
+                <button value="cancel" class="gate-btn ghost" type="submit">
+                  <i class="fa-solid fa-xmark" aria-hidden="true"></i> Close
+                </button>
+              </div>
+
+              <div style="padding: 14px; display: grid; gap: 14px">
+                <!-- Self-rating -->
+                <div class="card" style="padding: 12px">
+                  <strong
+                    ><i class="fa-solid fa-user-pen"></i> Self-rating</strong
+                  >
+                  <p class="text-muted" style="margin: 6px 0 10px">
+                    Pick the description that best fits your speaking today.
+                  </p>
+                  <div
+                    id="selfRate"
+                    class="grid"
+                    style="display: grid; gap: 8px"
+                  >
+                    <!-- radio rows -->
+                    <label class="chip" style="cursor: pointer"
+                      ><input type="radio" name="sr" value="Novice" /> I can
+                      handle basic words/phrases and memorized chunks.</label
+                    >
+                    <label class="chip" style="cursor: pointer"
+                      ><input type="radio" name="sr" value="Intermediate" /> I
+                      can handle everyday conversations but need help for
+                      complexity.</label
+                    >
+                    <label class="chip" style="cursor: pointer"
+                      ><input type="radio" name="sr" value="Advanced" /> I can
+                      narrate/describe in all time frames and handle most
+                      tasks.</label
+                    >
+                    <label class="chip" style="cursor: pointer"
+                      ><input type="radio" name="sr" value="Superior" /> I can
+                      support opinions, hypothesize, and discuss abstract
+                      topics.</label
+                    >
+                  </div>
+                </div>
+
+                <!-- 8 quick questions -->
+                <div class="card" style="padding: 12px">
+                  <strong
+                    ><i class="fa-solid fa-bolt"></i> Quick check (8
+                    items)</strong
+                  >
+                  <ol
+                    id="quizArea"
+                    style="
+                      margin: 10px 0 0;
+                      padding-left: 18px;
+                      display: grid;
+                      gap: 10px;
+                    "
+                  ></ol>
+                </div>
+
+                <!-- Optional speaking sample (counts lightly) -->
+                <div class="card" style="padding: 12px">
+                  <strong
+                    ><i class="fa-solid fa-microphone-lines"></i> Optional:
+                    30-sec speaking sample</strong
+                  >
+                  <p class="text-muted" style="margin: 6px 0 10px">
+                    Describe your day yesterday and your plans for tomorrow.
+                  </p>
+                  <div style="display: flex; gap: 8px; align-items: center">
+                    <button id="ptRecordBtn" type="button" class="btn-ghost">
+                      <i class="fa-solid fa-circle-dot"></i> Record
+                    </button>
+                    <span id="ptRecStatus" class="text-muted"
+                      >Not recording</span
+                    >
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px">
+                  <button
+                    id="placementStartBtn"
+                    type="button"
+                    class="gate-btn primary"
+                  >
+                    <i class="fa-solid fa-check"></i> Get my level & build
+                    course
+                  </button>
+                </div>
+              </div>
+            </form>
+          </dialog>
+        </section>
+
         <!-- ===== Conversation Panel (Two-pane layout) ===== -->
         <section id="conversation" class="panel active">
           <div class="layout">
@@ -1432,6 +1658,10 @@
         <button class="nav-btn" data-target="certificate">
           <i class="fa-solid fa-certificate" aria-hidden="true"></i> Certificate
         </button>
+        <button class="nav-btn" data-target="class">
+          <i class="fa-solid fa-people-line" aria-hidden="true"></i> Join a
+          Class
+        </button>
       </nav>
     </div>
 
@@ -2260,6 +2490,844 @@
 
         btnConvo?.addEventListener("click", exportChatMarkdown);
         btnFeedback?.addEventListener("click", exportFeedbackCSV);
+      })();
+    </script>
+    <script>
+      /* ===========================================================
+   Ehki Class/Course Manager (30 x 1-hour sessions)
+   - Placement → ACTFL level
+   - 30-day tailored syllabus
+   - Progress persistence (localStorage)
+   - Simple bridge for chat: window.EhkiCourse.getActiveContext()
+   =========================================================== */
+
+      (function ClassModule() {
+        const KEY = "ehki.course.v1";
+        const quizSpec = makeQuiz(); // 8 items
+
+        const els = {
+          joinBtn: document.getElementById("classJoinBtn"),
+          resumeBtn: document.getElementById("classResumeBtn"),
+          resetBtn: document.getElementById("classResetBtn"),
+          meta: document.getElementById("classMeta"),
+          levelBadge: document.getElementById("classLevelBadge"),
+          progBadge: document.getElementById("classProgressBadge"),
+          todayBadge: document.getElementById("classTodayBadge"),
+          bar: document.getElementById("classProgressBar"),
+          sessions: document.getElementById("classSessions"),
+          dlg: document.getElementById("placementDlg"),
+          quizArea: document.getElementById("quizArea"),
+          selfRate: document.getElementById("selfRate"),
+          placementBtn: document.getElementById("placementStartBtn"),
+          ptRecordBtn: document.getElementById("ptRecordBtn"),
+          ptRecStatus: document.getElementById("ptRecStatus"),
+        };
+
+        let course = load() || null;
+        let mediaRecorder = null,
+          ptChunks = [],
+          ptRecording = false;
+
+        // NEW: small guard to avoid double-kickoffs
+        let _kickoffLock = 0; // NEW
+
+        /* ---------- Public bridge for app.js ---------- */
+        window.EhkiCourse = {
+          getActiveContext() {
+            if (!course) return null;
+            const s = course.sessions[course.nextIndex] || null;
+            if (!s) return { level: course.level, topic: null, title: null };
+            return {
+              level: course.level,
+              topic: s.topic,
+              title: s.title,
+              index: course.nextIndex + 1,
+            };
+          },
+          markComplete() {
+            // optional external hook
+            if (!course) return;
+            course.sessions[course.nextIndex].done = true;
+            course.nextIndex = Math.min(
+              course.nextIndex + 1,
+              course.sessions.length - 1
+            );
+            save();
+            render();
+          },
+          reset() {
+            resetCourse();
+          },
+        };
+
+        /* ---------- wire UI ---------- */
+        els.joinBtn?.addEventListener("click", openPlacement);
+        els.resumeBtn?.addEventListener("click", () => {
+          ensureCourseOrStart(() => {
+            goToConversationForCurrent();
+            autoKickoffCurrentSession(); // NEW: kickoff when resuming
+          });
+        });
+        els.resetBtn?.addEventListener("click", () => {
+          if (confirm("Reset your class progress on this device?"))
+            resetCourse();
+        });
+
+        els.placementBtn?.addEventListener("click", finalizePlacement);
+        setupPlacementUI();
+
+        // initial render
+        render();
+
+        /* ---------- Placement ---------- */
+        function openPlacement() {
+          // clear old
+          Array.from(els.selfRate.querySelectorAll('input[name="sr"]')).forEach(
+            (r) => (r.checked = false)
+          );
+          buildQuiz();
+          if (typeof els.dlg.showModal === "function") els.dlg.showModal();
+          else alert("Placement UI requires a browser with <dialog> support.");
+        }
+
+        function setupPlacementUI() {
+          if (!els.ptRecordBtn) return;
+          els.ptRecordBtn.addEventListener("click", async () => {
+            try {
+              if (!ptRecording) {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                  audio: true,
+                });
+                mediaRecorder = new MediaRecorder(stream, {
+                  mimeType: "audio/webm",
+                });
+                ptChunks = [];
+                mediaRecorder.ondataavailable = (e) => {
+                  if (e.data?.size) ptChunks.push(e.data);
+                };
+                mediaRecorder.onstop = () => {
+                  els.ptRecStatus.textContent = "Recorded ~30s";
+                  stream.getTracks().forEach((t) => t.stop());
+                };
+                mediaRecorder.start();
+                ptRecording = true;
+                els.ptRecStatus.textContent = "Recording… click again to stop";
+                setTimeout(stopPT, 31000); // safety stop ~31s
+              } else stopPT();
+            } catch (e) {
+              els.ptRecStatus.textContent = "Mic blocked: " + (e?.message || e);
+            }
+          });
+          function stopPT() {
+            if (!ptRecording) return;
+            ptRecording = false;
+            try {
+              mediaRecorder?.stop();
+            } catch {}
+            els.ptRecStatus.textContent = "Processing…";
+            // We don’t upload; light bonus only. (Could be sent to server later.)
+            setTimeout(() => {
+              els.ptRecStatus.textContent = "Recorded ~30s";
+            }, 500);
+          }
+        }
+
+        function buildQuiz() {
+          els.quizArea.innerHTML = "";
+          quizSpec.forEach((q, i) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+        <div><strong>${q.prompt}</strong></div>
+        <div class="grid" style="display:grid;gap:6px;margin-top:6px">
+          ${q.choices
+            .map(
+              (c, ci) => `
+            <label class="chip" style="cursor:pointer">
+              <input type="radio" name="q${i}" value="${ci}"/> ${c}
+            </label>
+          `
+            )
+            .join("")}
+        </div>
+      `;
+            els.quizArea.appendChild(li);
+          });
+        }
+
+        async function finalizePlacement() {
+          // self-rating
+          const sr =
+            els.selfRate.querySelector('input[name="sr"]:checked')?.value ||
+            null;
+
+          // quiz score
+          let score = 0,
+            answered = 0;
+          quizSpec.forEach((q, i) => {
+            const val = Number(
+              els.quizArea.querySelector(`input[name="q${i}"]:checked`)
+                ?.value ?? -1
+            );
+            if (val >= 0) {
+              answered++;
+              if (val === q.answerIndex) score++;
+            }
+          });
+          if (answered < quizSpec.length) {
+            alert("Please answer all quick check items.");
+            return;
+          }
+
+          // lightweight speaking bonus if recorded
+          const spoke = /Recorded/.test(els.ptRecStatus.textContent || "")
+            ? 1
+            : 0;
+
+          // map to ACTFL bands
+          // score out of 8 → buckets; self-rating nudges selection
+          let level = mapScoreToACTFL(score, sr, spoke);
+
+          // build 30-day course
+          const plan = makeSyllabus(level);
+
+          course = {
+            level,
+            createdAt: new Date().toISOString(),
+            sessions: plan,
+            nextIndex: plan.findIndex((s) => !s.done) || 0,
+            stats: { quizScore: score, selfRate: sr, spoke },
+          };
+          save();
+          render();
+          try {
+            els.dlg.close?.();
+          } catch {}
+          // jump user to Conversation primed for Day 1
+          goToConversationForCurrent(true);
+          autoKickoffCurrentSession(); // NEW: auto-start the first class turn
+        }
+
+        function mapScoreToACTFL(score, selfRate, spoke) {
+          // raw bucket by score
+          let base =
+            score <= 2
+              ? "Novice Mid"
+              : score <= 4
+              ? "Novice High"
+              : score <= 6
+              ? "Intermediate Mid"
+              : score === 7
+              ? "Intermediate High"
+              : "Advanced Low";
+
+          // nudge by self-rating
+          if (selfRate === "Advanced" && base.startsWith("Intermediate"))
+            base = "Advanced Low";
+          if (selfRate === "Superior" && !/^Superior|Advanced High$/.test(base))
+            base = "Advanced Mid";
+          if (selfRate === "Novice" && !base.startsWith("Novice"))
+            base = "Novice High";
+
+          // tiny bonus for speaking sample
+          if (spoke && base === "Intermediate Mid") base = "Intermediate High";
+
+          return base;
+        }
+
+        /* ---------- Syllabus generator (30 sessions) ---------- */
+        function makeSyllabus(level) {
+          const core = libraryByLevel(level);
+          const sessions = [];
+          // 30 x 1-hour plan: spiral grammar + functions + scenarios + review days
+          const days = 30;
+          let gi = 0,
+            fi = 0,
+            si = 0,
+            ri = 0;
+
+          for (let d = 1; d <= days; d++) {
+            let block, title, topic, obj;
+            if ([7, 14, 21, 28].includes(d)) {
+              // weekly review / assessment
+              block = "Review & Assessment";
+              topic = "Integrated skills & mock speaking";
+              title = `Week ${Math.ceil(d / 7)} Review`;
+              obj =
+                "Consolidate the week’s targets with timed speaking and feedback.";
+            } else {
+              // rotate: Grammar → Function → Scenario → Skills
+              const mod = d % 4;
+              if (mod === 1) {
+                const g = core.grammar[gi++ % core.grammar.length];
+                block = "Grammar Focus";
+                topic = g.title;
+                obj = g.obj;
+              } else if (mod === 2) {
+                const f = core.functions[fi++ % core.functions.length];
+                block = "Communication Skill";
+                topic = f.title;
+                obj = f.obj;
+              } else if (mod === 3) {
+                const s = core.scenarios[si++ % core.scenarios.length];
+                block = "Real-world Scenario";
+                topic = s.title;
+                obj = s.obj;
+              } else {
+                const r = core.skills[ri++ % core.skills.length];
+                block = "Fluency & Listening";
+                topic = r.title;
+                obj = r.obj;
+              }
+              title = `${block}: ${topic}`;
+            }
+            sessions.push({
+              day: d,
+              title,
+              topic,
+              block,
+              objectives: obj,
+              prompts: core.prompts.slice(0, 3), // seed prompts for AI
+              done: false,
+            });
+          }
+          return sessions;
+        }
+
+        function libraryByLevel(level) {
+          // Tailored banks per band (compact but focused). You can expand freely.
+          const N = (txt) => txt; // terse helper
+
+          const NOVICE = {
+            grammar: [
+              {
+                title: "Present simple & be",
+                obj: N(
+                  "Produce short sentences with 'be' and common verbs; subject–verb order; yes/no & WH questions."
+                ),
+              },
+              {
+                title: "There is/are, a/an, some/any",
+                obj: N("Describe places and items with basic quantifiers."),
+              },
+              {
+                title: "Can/can’t for ability",
+                obj: N("Talk about abilities and simple requests."),
+              },
+              {
+                title: "Present continuous (now)",
+                obj: N("Describe actions happening now; -ing forms."),
+              },
+            ],
+            functions: [
+              {
+                title: "Introduce yourself",
+                obj: N("Share name, country, job, and a few likes."),
+              },
+              {
+                title: "Ask & answer simple questions",
+                obj: N("Keep basic exchanges going with follow-ups."),
+              },
+              {
+                title: "Make requests & offers",
+                obj: N("Use polite forms for everyday tasks."),
+              },
+              {
+                title: "Give simple directions",
+                obj: N("Use landmarks and short imperatives."),
+              },
+            ],
+            scenarios: [
+              {
+                title: "At a store",
+                obj: N("Ask prices, sizes, colors, and pay."),
+              },
+              {
+                title: "Ordering food",
+                obj: N("Order, ask for recommendations, and pay."),
+              },
+              {
+                title: "Public transport",
+                obj: N("Ask about routes, times, tickets."),
+              },
+              {
+                title: "Doctor visit (basic)",
+                obj: N("Describe simple symptoms and needs."),
+              },
+            ],
+            skills: [
+              {
+                title: "High-frequency vocab",
+                obj: N("Use 200–400 core words in speech."),
+              },
+              {
+                title: "Pronunciation basics",
+                obj: N("Key sounds, word stress in common words."),
+              },
+              {
+                title: "Listening to short notices",
+                obj: N("Extract times, prices, locations."),
+              },
+              {
+                title: "Fluency: short turns",
+                obj: N("Extend answers beyond one word."),
+              },
+            ],
+            prompts: [
+              "Introduce yourself to a new neighbor.",
+              "Order a meal and ask two follow-up questions.",
+              "Ask for directions to a nearby place.",
+            ],
+          };
+
+          const INTERMEDIATE = {
+            grammar: [
+              {
+                title: "Past simple vs. present perfect",
+                obj: N(
+                  "Narrate recent experiences vs finished past; for/since."
+                ),
+              },
+              {
+                title: "Future (will / be going to / present cont.)",
+                obj: N("Differentiate decisions, plans, and scheduled events."),
+              },
+              {
+                title: "Comparatives & superlatives",
+                obj: N("Compare options and justify preferences."),
+              },
+              {
+                title: "Modals (advice/obligation)",
+                obj: N("Use should/ought to/have to/must appropriately."),
+              },
+              {
+                title: "Zero/First conditionals",
+                obj: N("Talk about facts and likely future results."),
+              },
+            ],
+            functions: [
+              {
+                title: "Tell a story",
+                obj: N("Sequence events with linking and detail."),
+              },
+              {
+                title: "Agree/disagree politely",
+                obj: N("Express opinions and support them."),
+              },
+              {
+                title: "Handle problems",
+                obj: N("Complain, apologize, and resolve issues."),
+              },
+              {
+                title: "Give instructions",
+                obj: N("Explain steps clearly with sequencing."),
+              },
+            ],
+            scenarios: [
+              {
+                title: "Job interview (basic)",
+                obj: N("Describe strengths, past roles, and goals."),
+              },
+              {
+                title: "Travel problem",
+                obj: N("Handle delays, lost items, or rebooking."),
+              },
+              {
+                title: "Doctor visit (detail)",
+                obj: N("Describe symptoms, timelines, medication."),
+              },
+              {
+                title: "School meeting",
+                obj: N("Discuss progress, concerns, and plans."),
+              },
+            ],
+            skills: [
+              {
+                title: "Listening for gist + detail",
+                obj: N("Summarize and ask clarifying questions."),
+              },
+              {
+                title: "Pronunciation: sentence stress",
+                obj: N("Highlight key words for meaning."),
+              },
+              {
+                title: "Phrasal verbs in context",
+                obj: N("Use 10–15 common phrasals appropriately."),
+              },
+              {
+                title: "Fluency: longer turns",
+                obj: N("Speak for 60–90 seconds with coherence."),
+              },
+            ],
+            prompts: [
+              "Tell me about a memorable trip and what you learned.",
+              "A friend asks for advice; respond with reasons.",
+              "Explain how to complete a task step by step.",
+            ],
+          };
+
+          const ADVANCED = {
+            grammar: [
+              {
+                title: "Narration across time frames",
+                obj: N("Sustain past, present, future with control."),
+              },
+              {
+                title: "Reported speech",
+                obj: N("Relay statements/questions accurately."),
+              },
+              {
+                title: "Second/Third/mixed conditionals",
+                obj: N("Hypothesize about present/past situations."),
+              },
+              {
+                title: "Subordination & cohesion",
+                obj: N("Link ideas with varied complex structures."),
+              },
+            ],
+            functions: [
+              {
+                title: "Present & persuade",
+                obj: N("Make a case with evidence and counterpoints."),
+              },
+              {
+                title: "Speculate & hypothesize",
+                obj: N("Discuss unreal/uncertain scenarios."),
+              },
+              {
+                title: "Compare frameworks",
+                obj: N("Analyze pros/cons across dimensions."),
+              },
+              {
+                title: "Summarize & synthesize",
+                obj: N("Integrate multiple sources/arguments."),
+              },
+            ],
+            scenarios: [
+              {
+                title: "Workplace conflict",
+                obj: N("Mediate and propose win-win options."),
+              },
+              {
+                title: "Academic seminar",
+                obj: N("Summarize a paper and field questions."),
+              },
+              {
+                title: "Community proposal",
+                obj: N("Pitch an initiative and handle objections."),
+              },
+              {
+                title: "Negotiation",
+                obj: N("Bargain terms with trade-offs."),
+              },
+            ],
+            skills: [
+              {
+                title: "Listening to dense input",
+                obj: N("Note-take and paraphrase accurately."),
+              },
+              {
+                title: "Pronunciation: intonation",
+                obj: N("Use pitch contours to signal stance."),
+              },
+              {
+                title: "Lexical sophistication",
+                obj: N("Employ precise, domain-specific words."),
+              },
+              {
+                title: "Fluency: 2–3 min talk",
+                obj: N("Maintain coherence and signposting."),
+              },
+            ],
+            prompts: [
+              "Present a proposal; address likely objections.",
+              "Compare two approaches and justify your recommendation.",
+              "Summarize a complex issue and suggest solutions.",
+            ],
+          };
+
+          const SUPERIOR = {
+            grammar: ADVANCED.grammar,
+            functions: [
+              {
+                title: "Defend nuanced positions",
+                obj: N(
+                  "Use evidence, qualify claims, and hedge appropriately."
+                ),
+              },
+              {
+                title: "Evaluate sources",
+                obj: N("Assess credibility and bias in materials."),
+              },
+              {
+                title: "Handle abstract themes",
+                obj: N("Discuss ethics, policy, and hypothetical futures."),
+              },
+              {
+                title: "Lead discussions",
+                obj: N("Elicit contributions and synthesize viewpoints."),
+              },
+            ],
+            scenarios: [
+              {
+                title: "Policy debate",
+                obj: N("Argue trade-offs and impacts."),
+              },
+              {
+                title: "Crisis briefing",
+                obj: N("Prioritize actions and communicate risks."),
+              },
+              {
+                title: "Executive presentation",
+                obj: N("Align stakeholders with data + narrative."),
+              },
+              {
+                title: "Cross-cultural mediation",
+                obj: N("Navigate norms and avoid missteps."),
+              },
+            ],
+            skills: ADVANCED.skills,
+            prompts: [
+              "Defend a policy position with counter-arguments.",
+              "Evaluate two conflicting reports and decide.",
+              "Lead a discussion to a concrete decision.",
+            ],
+          };
+
+          if (/Novice/i.test(level)) return NOVICE;
+          if (/Intermediate/i.test(level)) return INTERMEDIATE;
+          if (/Advanced/i.test(level)) return ADVANCED;
+          return SUPERIOR;
+        }
+
+        /* ---------- Render / persistence ---------- */
+        function render() {
+          const has = !!course;
+          els.resumeBtn.disabled = !has;
+          els.resetBtn.disabled = !has;
+
+          if (!has) {
+            els.levelBadge.innerHTML = `<i class="fa-solid fa-ranking-star"></i> Level: —`;
+            els.progBadge.innerHTML = `<i class="fa-solid fa-bars-progress"></i> Progress: 0 / 30`;
+            els.todayBadge.innerHTML = `<i class="fa-solid fa-calendar-day"></i> Next: —`;
+            els.bar.style.width = "0%";
+            els.sessions.innerHTML = `<div class="text-muted">No class yet. Click <strong>Join Class</strong> to take the placement test.</div>`;
+            return;
+          }
+
+          const done = course.sessions.filter((s) => s.done).length;
+          const total = course.sessions.length;
+          const pct = Math.round((done / total) * 100);
+
+          els.levelBadge.innerHTML = `<i class="fa-solid fa-ranking-star"></i> Level: ${course.level}`;
+          els.progBadge.innerHTML = `<i class="fa-solid fa-bars-progress"></i> Progress: ${done} / ${total} (${pct}%)`;
+          const next =
+            course.sessions.find((s) => !s.done) || course.sessions[total - 1];
+          els.todayBadge.innerHTML = `<i class="fa-solid fa-calendar-day"></i> Next: Day ${next.day}`;
+          els.bar.style.width = pct + "%";
+
+          // build list
+          els.sessions.innerHTML = "";
+          course.sessions.forEach((s, idx) => {
+            const div = document.createElement("div");
+            div.className = "card";
+            div.style.padding = "10px";
+            div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap">
+          <div>
+            <strong>Day ${s.day} — ${s.title}</strong>
+            <div class="text-muted" style="font-size:12px">Objectives: ${s.objectives}</div>
+          </div>
+          <div class="btn-group" style="display:flex;gap:6px">
+            <button class="btn-ghost" data-open="${idx}">
+              <i class="fa-solid fa-comments"></i> Start
+            </button>
+            <button class="btn-ghost" data-done="${idx}">
+              <i class="fa-solid fa-circle-check"></i> Mark done
+            </button>
+          </div>
+        </div>
+      `;
+            if (s.done) div.style.opacity = 0.65;
+            els.sessions.appendChild(div);
+          });
+
+          // wire buttons
+          els.sessions.querySelectorAll("[data-open]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const idx = Number(e.currentTarget.getAttribute("data-open"));
+              course.nextIndex = idx;
+              save();
+              render();
+              goToConversationForCurrent(true);
+              autoKickoffCurrentSession(); // NEW: kickoff when starting a specific day
+            });
+          });
+          els.sessions.querySelectorAll("[data-done]").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              const idx = Number(e.currentTarget.getAttribute("data-done"));
+              course.sessions[idx].done = true;
+              // move pointer to next not-done
+              const nxt = course.sessions.findIndex((s) => !s.done);
+              course.nextIndex = nxt >= 0 ? nxt : course.sessions.length - 1;
+              save();
+              render();
+            });
+          });
+        }
+
+        function ensureCourseOrStart(cb) {
+          if (course) return cb && cb();
+          openPlacement();
+        }
+
+        function goToConversationForCurrent(scrollChat = false) {
+          // Switch to the Conversation tab
+          const btn = document.querySelector(
+            '.nav-btn[data-target="conversation"]'
+          );
+          if (btn) btn.click();
+          // Nudge UI: show a chip at the top of chat (non-intrusive)
+          try {
+            const ctx = window.EhkiCourse.getActiveContext();
+            const box = document.getElementById("chatBox");
+            if (box && ctx) {
+              const tip = document.createElement("div");
+              tip.className = "msg ai";
+              tip.innerHTML = `
+          <div class="content">
+            <div class="chip"><i class="fa-solid fa-book-open-reader"></i>
+              Class: Day ${ctx.index} — ${ctx.title || ctx.topic || "Session"}
+              <span style="margin-left:8px" class="text-muted">Level: ${
+                ctx.level
+              }</span>
+            </div>
+          </div>`;
+              box.appendChild(tip);
+              if (scrollChat) box.scrollTop = box.scrollHeight;
+            }
+          } catch {}
+          // Optional: expose current topic/level for app.js to include in /api/chat
+          window.EHKI_ACTIVE_SESSION = window.EhkiCourse.getActiveContext();
+          // If your app.js listens to this event, it can pull the context
+          window.dispatchEvent(
+            new CustomEvent("ehki:session-changed", {
+              detail: window.EHKI_ACTIVE_SESSION,
+            })
+          );
+        }
+
+        // NEW: auto-kickoff by reusing your existing Send flow (TTS/feedback intact)
+        function autoKickoffCurrentSession() {
+          // NEW
+          if (Date.now() - _kickoffLock < 1200) return; // debounce
+          _kickoffLock = Date.now();
+
+          const input = document.getElementById("userInput");
+          const sendBtn = document.getElementById("sendBtn");
+          const ctx = window.EhkiCourse?.getActiveContext?.();
+          if (!input || !sendBtn || !ctx) return;
+
+          input.value = `Please start Day ${ctx.index}: ${
+            ctx.title || ctx.topic
+          }. My ACTFL level is ${
+            ctx.level
+          }. Begin with a short warm-up question, outline today’s objectives, then give the first task. Keep your turn concise.`;
+          // Give the tab switch a beat, then send
+          setTimeout(() => sendBtn.click(), 150);
+        } // /NEW
+
+        function save() {
+          localStorage.setItem(KEY, JSON.stringify(course));
+        }
+        function load() {
+          try {
+            return JSON.parse(localStorage.getItem(KEY) || "null");
+          } catch {
+            return null;
+          }
+        }
+        function resetCourse() {
+          course = null;
+          localStorage.removeItem(KEY);
+          render();
+        }
+
+        function makeQuiz() {
+          return [
+            {
+              prompt: "Choose the correct sentence.",
+              choices: [
+                "He go to work every day.",
+                "He goes to work every day.",
+                "He going to work every day.",
+              ],
+              answerIndex: 1,
+            },
+            {
+              prompt: "Which is best for a recent experience?",
+              choices: [
+                "I have seen that movie last year.",
+                "I saw that movie last year.",
+                "I am seeing that movie last year.",
+              ],
+              answerIndex: 1,
+            },
+            {
+              prompt: "Pick the best future form for a plan.",
+              choices: [
+                "I will visit my aunt next Friday.",
+                "I am going to visit my aunt next Friday.",
+                "I visit my aunt next Friday.",
+              ],
+              answerIndex: 1,
+            },
+            {
+              prompt: "Choose the correct comparative.",
+              choices: [
+                "This route is more fast.",
+                "This route is faster.",
+                "This route is the most fast.",
+              ],
+              answerIndex: 1,
+            },
+            {
+              prompt: "Which shows obligation?",
+              choices: [
+                "You should try this.",
+                "You have to submit it by 5.",
+                "You might want to try this.",
+              ],
+              answerIndex: 1,
+            },
+            {
+              prompt: "Best conditional for a real result:",
+              choices: [
+                "If it rains, the streets get wet.",
+                "If it rained, the streets get wet.",
+                "If it had rained, the streets get wet.",
+              ],
+              answerIndex: 0,
+            },
+            {
+              prompt: "Reported speech: He said, “I’m tired.”",
+              choices: [
+                "He said he is tired.",
+                "He said he was tired.",
+                "He said he were tired.",
+              ],
+              answerIndex: 1,
+            },
+            {
+              prompt: "Pick the most natural option:",
+              choices: [
+                "If I would have time, I will help.",
+                "If I had time, I would help.",
+                "If I have time, I would help.",
+              ],
+              answerIndex: 1,
+            },
+          ];
+        }
       })();
     </script>
 

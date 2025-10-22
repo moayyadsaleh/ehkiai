@@ -284,3 +284,11 @@
 {"t":1761088318060,"role":"assistant","content":"It sounds like someone's in a festive mood! What's making you laugh like that, a funny joke or a holiday cartoon?"}
 {"t":1761089572770,"role":"user","content":"my best friend"}
 {"t":1761089573457,"role":"assistant","content":"My best friend is Sarah. We've known each other since uni. She's always there for me, no matter what. We love going to the pub and trying out new beers. What's your best friend like?"}
+{"t":1761092310723,"role":"user","content":"ojay"}
+{"t":1761092311336,"role":"assistant","content":"It seems like a greeting, but I'm not sure what it means. Where are you from, or what's going on that makes you say \"ojay\"?"}
+{"t":1761092329078,"role":"user","content":"I meant to say okay"}
+{"t":1761092329573,"role":"assistant","content":"We all make typos sometimes. So, what's been going on in your day so far? Anything exciting or just a quiet day?"}
+{"t":1761093024884,"role":"user","content":"Please start Day 1: Grammar Focus: Present simple & be. My ACTFL level is Novice High. Begin with a short warm-up question, outline today’s objectives, then give the first task. Keep your turn concise."}
+{"t":1761093025426,"role":"assistant","content":"G'day! How are you today?\n\n**Day 1: Present Simple & be**\n\n* Review: Introduce present simple verb forms and the be verb\n* Focus: Use present simple with be to describe routines and habits\n\n**First task:**\nComplete the sentence with 'I am', 'I do', or 'I am doing'. Example: 'I __________ a student.' How do you spend your free time?"}
+{"t":1761093447929,"role":"user","content":"Please start Day 1: Grammar Focus: Present simple & be. My ACTFL level is Novice High. Begin with a short warm-up question, outline today’s objectives, then give the first task. Keep your turn concise."}
+{"t":1761093448705,"role":"assistant","content":"How was your week?\n\nToday's objectives:\n\n- Understand the present simple tense and 'be' verb forms\n- Use present simple and 'be' correctly in simple sentences\n- Practice basic conversation using the present simple and 'be'\n\nTask 1: Read the following sentences and identify which ones use 'be' and which ones use the present simple: \n\n1. I am a student.\n2. I study English every day.\n3. She is a doctor.\n4. She works at a hospital."}
